@@ -82,6 +82,7 @@
     "js-library-detector": "^4.0.0",
     "json-stringify-safe": "5.0.1",
     "lighthouse-logger": "^1.0.0",
+    "marky": "^1.2.0",
     "metaviewport-parser": "0.1.0",
     "mkdirp": "0.5.1",
     "opn": "4.0.2",

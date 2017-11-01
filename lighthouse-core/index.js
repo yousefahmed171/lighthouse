@@ -9,6 +9,8 @@ const Runner = require('./runner');
 const log = require('lighthouse-logger');
 const ChromeProtocol = require('./gather/connections/cri.js');
 const Config = require('./config/config');
+const marky = require('marky');
+const fs = require('fs');
 
 /**
  * The relationship between these root modules:
@@ -26,6 +28,7 @@ const Config = require('./config/config');
  */
 
 module.exports = function(url, flags = {}, configJSON) {
+  marky.mark('total');
   const startTime = Date.now();
   return Promise.resolve().then(_ => {
     // set logging preferences, assume quiet
@@ -35,15 +38,24 @@ module.exports = function(url, flags = {}, configJSON) {
     // Use ConfigParser to generate a valid config file
     const config = new Config(configJSON, flags.configPath);
 
+    marky.mark('ConnectionSetup')
     const connection = new ChromeProtocol(flags.port, flags.hostname);
+    marky.stop('ConnectionSetup')
 
     // kick off a lighthouse run
     return Runner.run(connection, {url, flags, config})
       .then(lighthouseResults => {
         // Annotate with time to run lighthouse.
-        const endTime = Date.now();
+        marky.stop('total');
         lighthouseResults.timing = lighthouseResults.timing || {};
-        lighthouseResults.timing.total = endTime - startTime;
+
+        fs.writeFileSync('generateTrace.html', `
+        <!doctype html>
+        <script>
+          const entries = ${JSON.stringify(marky.getEntries())}
+        </script>
+        <script src="./gentrace.js"></script>
+        `, 'utf8');
 
         return lighthouseResults;
       });

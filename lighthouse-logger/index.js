@@ -104,6 +104,16 @@ class Log {
     Log._logToStdErr(`${prefix}:${level || ''}`, [method, snippet]);
   }
 
+  static time({str, id, args}, {level = 'log'}) {
+    Log.events.emit('time', id, str);
+    Log[level](str, ...args);
+  }
+
+  static timeEnd({str, id, args}, {level = 'verbose'}) {
+    Log.events.emit('timeEnd', id, str);
+    Log[level](str, ...args);
+  }
+
   static log(title, ...args) {
     Log.events.issueStatus(title, args);
     return Log._logToStdErr(title, args);

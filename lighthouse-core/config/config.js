@@ -5,6 +5,8 @@
  */
 'use strict';
 
+const marky = require('marky');
+
 const defaultConfigPath = './default.js';
 const defaultConfig = require('./default.js');
 const fullConfig = require('./full-config.js');
@@ -269,6 +271,7 @@ class Config {
    * @param {string=} configPath The absolute path to the config file, if there is one.
    */
   constructor(configJSON, configPath) {
+    marky.mark('config-create');
     if (!configJSON) {
       configJSON = defaultConfig;
       configPath = path.resolve(__dirname, defaultConfigPath);
@@ -331,6 +334,7 @@ class Config {
     // validatePasses must follow after audits are required
     validatePasses(configJSON.passes, this._audits, this._configDir);
     validateCategories(configJSON.categories, this._audits, this._auditResults, this._groups);
+    marky.stop('config-create');
   }
 
   /**
