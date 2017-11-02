@@ -65,8 +65,8 @@ class Runner {
     // ... or that there are artifacts & audits.
     const validArtifactsAndAudits = config.artifacts && config.audits;
 
-    log.events.on('status', ([_, title, id]) => marky.mark(id));
-    log.events.on('statusEnd', ([_, title, id]) => marky.stop(id));
+    log.events.on('time', ([id]) => marky.mark(id));
+    log.events.on('timeEnd', ([id]) => marky.stop(id));
 
     // Make a run, which can be .then()'d with whatever needs to run (based on the config).
     let run = Promise.resolve();
@@ -107,7 +107,7 @@ class Runner {
       });
 
       run = run.then(artifacts => {
-        log.log('status', 'Analyzing and running audits...', 'runner-auditall');
+        log.time({str: 'Analyzing and running audits...', id: 'runner-auditall'});
         return artifacts;
       });
 
@@ -143,9 +143,9 @@ class Runner {
     // Format and generate JSON report before returning.
     run = run
       .then(runResults => {
-        log.verbose('statusEnd', 'Analyzing and running audits...', 'runner-auditall');
+        log.timeEnd({str: 'Analyzing and running audits...', id: 'runner-auditall'});
         const status = {str: 'Generating results...', id: 'runner-generate'};
-        log.log('status', status.str, status.id);
+        log.time(status);
 
         const resultsById = runResults.auditResults.reduce((results, audit) => {
           results[audit.name] = audit;
@@ -161,7 +161,7 @@ class Runner {
           score = report.score;
         }
 
-        log.verbose('statusEnd', status.str, status.id);
+        log.timeEnd(status);
         const timings = {};
         marky.getEntries()
             .filter(e => e.entryType === 'measure')
@@ -207,7 +207,7 @@ class Runner {
     };
 
     return Promise.resolve().then(_ => {
-      log.log('status', status.str, status.id);
+      log.time(status);
 
       // Return an early error if an artifact required for the audit is missing or an error.
       for (const artifactName of audit.meta.requiredArtifacts) {
@@ -256,7 +256,7 @@ class Runner {
       // Non-fatal error become error audit result.
       return Audit.generateErrorAuditResult(audit, 'Audit error: ' + err.message);
     }).then(result => {
-      log.verbose('statusEnd', status.str, status.id);
+      log.timeEnd(status);
       return result;
     });
   }

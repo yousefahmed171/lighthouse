@@ -1,3 +1,5 @@
+// adapted from https://github.com/tdresser/performance-observer-tracing
+
 'use strict';
 
 const currentTrace = [];
