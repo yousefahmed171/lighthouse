@@ -252,7 +252,7 @@ class GatherRunner {
       .then(_ => recordTrace && driver.beginTrace(options.flags))
       // Navigate.
       .then(_ => GatherRunner.loadPage(driver, options))
-      .then(_ => log.timeEnd(status, {level: 'log'}));
+      .then(_ => log.timeEnd(status, 'log'));
 
     return gatherers.reduce((chain, gatherer) => {
       const status = {

@@ -65,8 +65,8 @@ class Runner {
     // ... or that there are artifacts & audits.
     const validArtifactsAndAudits = config.artifacts && config.audits;
 
-    log.events.on('time', ([id]) => marky.mark(id));
-    log.events.on('timeEnd', ([id]) => marky.stop(id));
+    log.events.on('time', (id) => marky.mark(id));
+    log.events.on('timeEnd', (id) => marky.stop(id));
 
     // Make a run, which can be .then()'d with whatever needs to run (based on the config).
     let run = Promise.resolve();
@@ -163,9 +163,9 @@ class Runner {
 
         log.timeEnd(status);
         const timings = {};
-        marky.getEntries()
-            .filter(e => e.entryType === 'measure')
-            .forEach(e => timings[e.name] = e.duration);
+        const entries = marky.getEntries().filter(e => e.entryType === 'measure');
+        timings.entries = entries;
+        entries.forEach(e => timings[e.name] = e.duration);
 
         return {
           userAgent: runResults.artifacts.UserAgent,
