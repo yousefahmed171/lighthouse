@@ -48,15 +48,6 @@ module.exports = function(url, flags = {}, configJSON) {
         const totalEntry = log.marky.stop('total');
         lighthouseResults.timing = lighthouseResults.timing || {};
         lighthouseResults.timing.total = totalEntry.duration;
-
-        fs.writeFileSync('generateTrace.html', `
-        <!doctype html>
-        <script>
-          const entries = ${JSON.stringify(log.marky.getEntries())}
-        </script>
-        <script src="./gentrace.js"></script>
-        `, 'utf8');
-
         return lighthouseResults;
       });
   });
