@@ -124,6 +124,7 @@ class Runner {
         return {artifacts, auditResults};
       });
     } else if (config.auditResults) {
+      log.time({str: 'Analyzing and running audits...', id: 'runner-auditall'});
       // If there are existing audit results, surface those here.
       // Instantiate and return artifacts for consistency.
       const artifacts = Object.assign({}, config.artifacts || {},

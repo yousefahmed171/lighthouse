@@ -29,7 +29,6 @@ const fs = require('fs');
 
 module.exports = function(url, flags = {}, configJSON) {
   marky.mark('total');
-  const startTime = Date.now();
   return Promise.resolve().then(_ => {
     // set logging preferences, assume quiet
     flags.logLevel = flags.logLevel || 'error';
@@ -38,16 +37,17 @@ module.exports = function(url, flags = {}, configJSON) {
     // Use ConfigParser to generate a valid config file
     const config = new Config(configJSON, flags.configPath);
 
-    marky.mark('ConnectionSetup')
+    marky.mark('ConnectionSetup');
     const connection = new ChromeProtocol(flags.port, flags.hostname);
-    marky.stop('ConnectionSetup')
+    marky.stop('ConnectionSetup');
 
     // kick off a lighthouse run
     return Runner.run(connection, {url, flags, config})
       .then(lighthouseResults => {
         // Annotate with time to run lighthouse.
-        marky.stop('total');
+        const totalEntry = marky.stop('total');
         lighthouseResults.timing = lighthouseResults.timing || {};
+        lighthouseResults.timing.total = totalEntry.duration;
 
         fs.writeFileSync('generateTrace.html', `
         <!doctype html>

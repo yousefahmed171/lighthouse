@@ -106,12 +106,12 @@ class Log {
 
   static time({str, id, args=[]}, level='log') {
     Log.events.emit('time', id, str);
-    Log[level](str, ...args);
+    Log[level]('status', str, ...args);
   }
 
   static timeEnd({str, id, args=[]}, level='verbose') {
     Log.events.emit('timeEnd', id, str);
-    Log[level](str, ...args);
+    Log[level]('statusEnd', str, ...args);
   }
 
   static log(title, ...args) {
