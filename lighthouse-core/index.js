@@ -9,7 +9,7 @@ const Runner = require('./runner');
 const log = require('lighthouse-logger');
 const ChromeProtocol = require('./gather/connections/cri.js');
 const Config = require('./config/config');
-const marky = require('marky');
+
 const fs = require('fs');
 
 /**
@@ -28,7 +28,7 @@ const fs = require('fs');
  */
 
 module.exports = function(url, flags = {}, configJSON) {
-  marky.mark('total');
+  log.marky.mark('total');
   return Promise.resolve().then(_ => {
     // set logging preferences, assume quiet
     flags.logLevel = flags.logLevel || 'error';
@@ -37,22 +37,22 @@ module.exports = function(url, flags = {}, configJSON) {
     // Use ConfigParser to generate a valid config file
     const config = new Config(configJSON, flags.configPath);
 
-    marky.mark('ConnectionSetup');
+    log.marky.mark('ConnectionSetup');
     const connection = new ChromeProtocol(flags.port, flags.hostname);
-    marky.stop('ConnectionSetup');
+    log.marky.stop('ConnectionSetup');
 
     // kick off a lighthouse run
     return Runner.run(connection, {url, flags, config})
       .then(lighthouseResults => {
         // Annotate with time to run lighthouse.
-        const totalEntry = marky.stop('total');
+        const totalEntry = log.marky.stop('total');
         lighthouseResults.timing = lighthouseResults.timing || {};
         lighthouseResults.timing.total = totalEntry.duration;
 
         fs.writeFileSync('generateTrace.html', `
         <!doctype html>
         <script>
-          const entries = ${JSON.stringify(marky.getEntries())}
+          const entries = ${JSON.stringify(log.marky.getEntries())}
         </script>
         <script src="./gentrace.js"></script>
         `, 'utf8');

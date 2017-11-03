@@ -6,6 +6,8 @@
 'use strict';
 
 const debug = require('debug');
+const marky = require('marky');
+
 const EventEmitter = require('events').EventEmitter;
 const isWindows = process.platform === 'win32';
 
@@ -105,12 +107,12 @@ class Log {
   }
 
   static time({str, id, args=[]}, level='log') {
-    Log.events.emit('time', id, str);
+    marky.mark(id);
     Log[level]('status', str, ...args);
   }
 
   static timeEnd({str, id, args=[]}, level='verbose') {
-    Log.events.emit('timeEnd', id, str);
+    marky.stop(id);
     Log[level]('statusEnd', str, ...args);
   }
 
@@ -217,5 +219,6 @@ class Log {
 }
 
 Log.events = new Emitter();
+Log.marky = marky;
 
 module.exports = Log;

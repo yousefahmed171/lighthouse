@@ -5,7 +5,6 @@
  */
 'use strict';
 
-const marky = require('marky');
 const Driver = require('./gather/driver.js');
 const GatherRunner = require('./gather/gather-runner');
 const ReportGeneratorV2 = require('./report/v2/report-generator');
@@ -26,7 +25,7 @@ class Runner {
 
     // List of top-level warnings for this Lighthouse run.
     const lighthouseRunWarnings = [];
-    marky.mark('runner.run');
+    log.marky.mark('runner.run');
 
     // save the initialUrl provided by the user
     opts.initialUrl = opts.url;
@@ -65,8 +64,7 @@ class Runner {
     // ... or that there are artifacts & audits.
     const validArtifactsAndAudits = config.artifacts && config.audits;
 
-    log.events.on('time', (id) => marky.mark(id));
-    log.events.on('timeEnd', (id) => marky.stop(id));
+
 
     // Make a run, which can be .then()'d with whatever needs to run (based on the config).
     let run = Promise.resolve();
@@ -77,7 +75,7 @@ class Runner {
       if (validPassesAndAudits) {
         // Set up the driver and run gatherers.
         opts.driver = opts.driverMock || new Driver(connection);
-        run = run.then(_ => marky.stop('runner.run'));
+        run = run.then(_ => log.marky.stop('runner.run'));
 
         run = run.then(_ => GatherRunner.run(config.passes, opts));
       } else if (validArtifactsAndAudits) {
@@ -164,7 +162,7 @@ class Runner {
 
         log.timeEnd(status);
         const timings = {};
-        const entries = marky.getEntries().filter(e => e.entryType === 'measure');
+        const entries = log.marky.getEntries().filter(e => e.entryType === 'measure');
         timings.entries = entries;
         entries.forEach(e => timings[e.name] = e.duration);
 
