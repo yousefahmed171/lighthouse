@@ -10,8 +10,6 @@ const log = require('lighthouse-logger');
 const ChromeProtocol = require('./gather/connections/cri.js');
 const Config = require('./config/config');
 
-const fs = require('fs');
-
 /**
  * The relationship between these root modules:
  *
@@ -28,7 +26,8 @@ const fs = require('fs');
  */
 
 module.exports = function(url, flags = {}, configJSON) {
-  log.marky.mark('total');
+  const overallStatus = {msg: 'Overall', id: 'total'};
+  log.time(overallStatus, 'verbose');
   return Promise.resolve().then(_ => {
     // set logging preferences, assume quiet
     flags.logLevel = flags.logLevel || 'error';
@@ -36,22 +35,27 @@ module.exports = function(url, flags = {}, configJSON) {
 
     // Use ConfigParser to generate a valid config file
     const config = new Config(configJSON, flags.configPath);
-
-    log.marky.mark('ConnectionSetup');
     const connection = new ChromeProtocol(flags.port, flags.hostname);
-    log.marky.stop('ConnectionSetup');
 
     // kick off a lighthouse run
     return Runner.run(connection, {url, flags, config})
       .then(lighthouseResults => {
-        // Annotate with time to run lighthouse.
-        const totalEntry = log.marky.stop('total');
-        lighthouseResults.timing = lighthouseResults.timing || {};
-        lighthouseResults.timing.total = totalEntry.duration;
+        const totalEntry = log.timeEnd(overallStatus);
+        finalizeEndTime(totalEntry, lighthouseResults);
         return lighthouseResults;
       });
   });
 };
+
+/**
+ * Add timing entry for the overall LH run
+ */
+function finalizeEndTime(totalEntry, lighthouseResults) {
+  lighthouseResults.timing = lighthouseResults.timing || {};
+  lighthouseResults.timing.entries = lighthouseResults.timing.entries || [];
+  lighthouseResults.timing.entries.push(totalEntry);
+  lighthouseResults.timing.total = totalEntry.duration;
+}
 
 module.exports.getAuditList = Runner.getAuditList;
 module.exports.traceCategories = require('./gather/driver').traceCategories;

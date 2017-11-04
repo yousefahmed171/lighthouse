@@ -65,7 +65,7 @@ class GatherRunner {
    * @return {!Promise}
    */
   static loadBlank(driver, url = 'about:blank', duration = 300) {
-    const status = {str: 'Resetting state with about:blank', id: 'aboutblank'};
+    const status = {msg: 'Resetting state with about:blank', id: 'aboutblank'};
     log.time(status);
     return driver.gotoURL(url)
       .then(_ => new Promise(resolve => setTimeout(resolve, duration)))
@@ -99,7 +99,7 @@ class GatherRunner {
    * @return {!Promise}
    */
   static setupDriver(driver, gathererResults, options) {
-    const status = {str: 'Initializing…', id: 'gatherrunner-init'};
+    const status = {msg: 'Initializing…', id: 'gatherrunner-init'};
     log.time(status);
     const resetStorage = !options.flags.disableStorageReset;
     // Enable emulation based on flags
@@ -119,7 +119,7 @@ class GatherRunner {
   }
 
   static disposeDriver(driver) {
-    const status = {str: 'Disconnecting from browser...', id: 'gatherrunner-disconnect'};
+    const status = {msg: 'Disconnecting from browser...', id: 'gatherrunner-disconnect'};
     log.time(status);
     return driver.disconnect().catch(err => {
       // Ignore disconnecting error if browser was already closed.
@@ -207,11 +207,11 @@ class GatherRunner {
 
     return options.config.gatherers.reduce((chain, gatherer) => {
       const status = {
-        str: `Retrieving setup: ${gatherer.name}`,
+        msg: `Retrieving setup: ${gatherer.name}`,
         id: `gather-${gatherer.name}-before`,
       };
       return chain.then(_ => {
-        log.time(status);
+        log.time(status, 'verbose');
         const artifactPromise = Promise.resolve().then(_ => gatherer.beforePass(options));
         gathererResults[gatherer.name] = [artifactPromise];
         return GatherRunner.recoverOrThrow(artifactPromise);
@@ -237,7 +237,7 @@ class GatherRunner {
     const isPerfRun = !options.flags.disableStorageReset && recordTrace && config.useThrottling;
 
     const status = {
-      str: 'Loading page & waiting for onload',
+      msg: 'Loading page & waiting for onload',
       id: 'gatherrunner-loading',
       args: [gatherers.map(g => g.name).join(', ')],
     };
@@ -256,11 +256,11 @@ class GatherRunner {
 
     return gatherers.reduce((chain, gatherer) => {
       const status = {
-        str: `Retrieving in-page: ${gatherer.name}`,
+        msg: `Retrieving in-page: ${gatherer.name}`,
         id: `gather-${gatherer.name}-pass`,
       };
       return chain.then(_ => {
-        log.time(status);
+        log.time(status, 'verbose');
         const artifactPromise = Promise.resolve().then(_ => gatherer.pass(options));
         gathererResults[gatherer.name].push(artifactPromise);
         return GatherRunner.recoverOrThrow(artifactPromise);
@@ -287,7 +287,7 @@ class GatherRunner {
     let pass = Promise.resolve();
 
     if (config.recordTrace) {
-      const status = {str: 'Retrieving trace', id: `gatherrunner-trace`};
+      const status = {msg: 'Retrieving trace', id: `gatherrunner-trace`};
       pass = pass.then(_ => {
         log.time(status);
         return driver.endTrace();
@@ -302,7 +302,7 @@ class GatherRunner {
     }
 
     pass = pass.then(_ => {
-      const status = {str: 'Retrieving devtoolsLog and network records', id: `gatherrunner-log`};
+      const status = {msg: 'Retrieving devtoolsLog and network records', id: `gatherrunner-log`};
       log.time(status);
       const devtoolsLog = driver.endDevtoolsLog();
       const networkRecords = NetworkRecorder.recordsFromLogs(devtoolsLog);
@@ -318,7 +318,7 @@ class GatherRunner {
     pass = pass.then(_ => driver.setThrottling(options.flags, {useThrottling: false}));
 
     pass = gatherers.reduce((chain, gatherer) => {
-      const status = {str: `Retrieving: ${gatherer.name}`, id: `gather-${gatherer.name}-after`};
+      const status = {msg: `Retrieving: ${gatherer.name}`, id: `gather-${gatherer.name}-after`};
       return chain.then(_ => {
         log.time(status);
         const artifactPromise = Promise.resolve().then(_ => gatherer.afterPass(options, passData));

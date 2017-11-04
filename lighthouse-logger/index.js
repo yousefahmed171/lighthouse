@@ -106,14 +106,14 @@ class Log {
     Log._logToStdErr(`${prefix}:${level || ''}`, [method, snippet]);
   }
 
-  static time({str, id, args=[]}, level='log') {
+  static time({msg, id, args=[]}, level='log') {
     marky.mark(id);
-    Log[level]('status', str, ...args);
+    Log[level]('status', msg, ...args);
   }
 
-  static timeEnd({str, id, args=[]}, level='verbose') {
-    marky.stop(id);
-    Log[level]('statusEnd', str, ...args);
+  static timeEnd({msg, id, args=[]}, level='verbose') {
+    Log[level]('statusEnd', msg, ...args);
+    return marky.stop(id);
   }
 
   static log(title, ...args) {

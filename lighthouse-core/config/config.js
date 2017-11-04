@@ -269,7 +269,8 @@ class Config {
    * @param {string=} configPath The absolute path to the config file, if there is one.
    */
   constructor(configJSON, configPath) {
-    log.marky.mark('config-create');
+    const status = {msg: 'Create config', id: 'config-create'};
+    log.time(status, 'verbose');
     if (!configJSON) {
       configJSON = defaultConfig;
       configPath = path.resolve(__dirname, defaultConfigPath);
@@ -332,7 +333,7 @@ class Config {
     // validatePasses must follow after audits are required
     validatePasses(configJSON.passes, this._audits, this._configDir);
     validateCategories(configJSON.categories, this._audits, this._auditResults, this._groups);
-    log.marky.stop('config-create');
+    log.timeEnd(status);
   }
 
   /**

@@ -25,7 +25,8 @@ class Runner {
 
     // List of top-level warnings for this Lighthouse run.
     const lighthouseRunWarnings = [];
-    log.marky.mark('runner.run');
+    const runnerStatus = {msg: 'Runner setup', id: 'runner.run'};
+    log.time(runnerStatus, 'verbose');
 
     // save the initialUrl provided by the user
     opts.initialUrl = opts.url;
@@ -75,7 +76,7 @@ class Runner {
       if (validPassesAndAudits) {
         // Set up the driver and run gatherers.
         opts.driver = opts.driverMock || new Driver(connection);
-        run = run.then(_ => log.marky.stop('runner.run'));
+        run = run.then(_ => log.timeEnd(runnerStatus));
 
         run = run.then(_ => GatherRunner.run(config.passes, opts));
       } else if (validArtifactsAndAudits) {
@@ -105,7 +106,7 @@ class Runner {
       });
 
       run = run.then(artifacts => {
-        log.time({str: 'Analyzing and running audits...', id: 'runner-auditall'});
+        log.time({msg: 'Analyzing and running audits...', id: 'runner-auditall'});
         return artifacts;
       });
 
@@ -122,7 +123,7 @@ class Runner {
         return {artifacts, auditResults};
       });
     } else if (config.auditResults) {
-      log.time({str: 'Analyzing and running audits...', id: 'runner-auditall'});
+      log.time({msg: 'Analyzing and running audits...', id: 'runner-auditall'});
       // If there are existing audit results, surface those here.
       // Instantiate and return artifacts for consistency.
       const artifacts = Object.assign({}, config.artifacts || {},
@@ -142,8 +143,8 @@ class Runner {
     // Format and generate JSON report before returning.
     run = run
       .then(runResults => {
-        log.timeEnd({str: 'Analyzing and running audits...', id: 'runner-auditall'});
-        const status = {str: 'Generating results...', id: 'runner-generate'};
+        log.timeEnd({msg: 'Analyzing and running audits...', id: 'runner-auditall'});
+        const status = {msg: 'Generating results...', id: 'runner-generate'};
         log.time(status);
 
         const resultsById = runResults.auditResults.reduce((results, audit) => {
@@ -161,10 +162,10 @@ class Runner {
         }
 
         log.timeEnd(status);
-        const timings = {};
+        const timing = {};
         const entries = log.marky.getEntries().filter(e => e.entryType === 'measure');
-        timings.entries = entries;
-        entries.forEach(e => timings[e.name] = e.duration);
+        timing.entries = entries;
+        entries.forEach(e => timing[e.name] = e.duration);
 
         return {
           userAgent: runResults.artifacts.UserAgent,
@@ -179,7 +180,7 @@ class Runner {
           score,
           reportCategories,
           reportGroups: config.groups,
-          timing: timings,
+          timing,
         };
       })
       .catch(err => {
@@ -201,7 +202,7 @@ class Runner {
    */
   static _runAudit(audit, artifacts) {
     const status = {
-      str: `Evaluating: ${audit.meta.description}`,
+      msg: `Evaluating: ${audit.meta.description}`,
       id: `audit-${audit.meta.name}`,
     };
 
