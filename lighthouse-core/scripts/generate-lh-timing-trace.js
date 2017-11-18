@@ -29,7 +29,7 @@ function checkEventOverlap(entry, prevEntries) {
 /**
  * Generates a chromium trace file from user timing measures
  * Adapted from https://github.com/tdresser/performance-observer-tracing
- * @param {!Array{{}}} entries user timing entries
+ * @param {!Array<PerformanceEntry>} entries user timing entries
  */
 function generateTraceEvents(entries) {
   const currentTrace = [];
@@ -46,25 +46,9 @@ function generateTraceEvents(entries) {
       dur: entry.duration * 1000,
     };
 
-    traceEvent.pid = 'Measurements';
-
-    switch (entry.entryType) {
-      case 'mark':
-        traceEvent.pid = 'Marks';
-        break;
-      case 'measure':
-        if (entry.name.startsWith('audit-')) traceEvent.tid = 'Audits';
-        else if (entry.name.startsWith('gather-')) traceEvent.tid = 'Gatherers';
-        else traceEvent.tid = 'TopLevelMeasures';
-        break;
-      default:
-        traceEvent.pid = 'Primary';
-    }
-
-    if (entry.entryType === 'resource') {
-      entry.url = traceEvent.name;
-      traceEvent.name = 'resource';
-    }
+    if (entry.entryType !== 'measure') throw new Error('Unexpected entryType!');
+    traceEvent.pid = 'Lighthouse';
+    traceEvent.tid = 'measures';
 
     if (entry.duration === 0) {
       traceEvent.ph = 'n';
@@ -87,14 +71,14 @@ function generateTraceEvents(entries) {
     traceEvent.args = args;
 
     currentTrace.push(traceEvent);
-  }
+  });
 
   return currentTrace;
 }
 
 /**
  * Writes a trace file to disk
- * @param {!Array{{}}} entries user timing entries
+ * @param {!Array<PerformanceEntry>} entries user timing entries
  * @param {?string} traceFilePath where to save the trace file
  */
 function saveTraceOfTimings(entries, traceFilePath) {
@@ -109,10 +93,11 @@ function saveTraceOfTimings(entries, traceFilePath) {
     traceFilePath = path.resolve(process.cwd(), 'run-timing.trace.json');
   }
   fs.writeFileSync(traceFilePath, jsonStr, 'utf8');
-  console.log(`
+  process.stdout.write(`
   > Timing trace file saved to: ${traceFilePath}
   > Open this file in chrome://tracing
-  `);
+
+`);
 }
 
 /**
@@ -120,11 +105,12 @@ function saveTraceOfTimings(entries, traceFilePath) {
  */
 function saveTraceFromCLI() {
   const printErrorAndQuit = msg => {
-    console.error(`ERROR:
+    process.stderr.write(`ERROR:
   > ${msg}
   > Example:
   >     yarn timing results.json
-  `);
+
+`);
     process.exit(1);
   };
 
