@@ -26,7 +26,7 @@ const Config = require('./config/config');
  */
 
 module.exports = function(url, flags = {}, configJSON) {
-  const overallStatus = {msg: 'Overall', id: 'total'};
+  const overallStatus = {msg: 'Overall', id: 'lh:index'};
   log.time(overallStatus, 'verbose');
   return Promise.resolve().then(_ => {
     // set logging preferences, assume quiet
@@ -53,7 +53,7 @@ module.exports = function(url, flags = {}, configJSON) {
 function finalizeEndTime(totalEntry, lighthouseResults) {
   lighthouseResults.timing = lighthouseResults.timing || {};
   lighthouseResults.timing.entries = lighthouseResults.timing.entries || [];
-  lighthouseResults.timing.entries.push(totalEntry);
+  // preserve lhr.timing.total for backcompatibility
   lighthouseResults.timing.total = totalEntry.duration;
 }
 

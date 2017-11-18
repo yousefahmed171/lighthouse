@@ -65,7 +65,7 @@ class GatherRunner {
    * @return {!Promise}
    */
   static loadBlank(driver, url = 'about:blank', duration = 300) {
-    const status = {msg: 'Resetting state with about:blank', id: 'aboutblank'};
+    const status = {msg: 'Resetting state with about:blank', id: 'lh:gather:loadBlank'};
     log.time(status);
     return driver.gotoURL(url)
       .then(_ => new Promise(resolve => setTimeout(resolve, duration)))
@@ -99,7 +99,7 @@ class GatherRunner {
    * @return {!Promise}
    */
   static setupDriver(driver, gathererResults, options) {
-    const status = {msg: 'Initializing…', id: 'gatherrunner-init'};
+    const status = {msg: 'Initializing…', id: 'lh:gather:setupDriver'};
     log.time(status);
     const resetStorage = !options.flags.disableStorageReset;
     // Enable emulation based on flags
@@ -119,7 +119,7 @@ class GatherRunner {
   }
 
   static disposeDriver(driver) {
-    const status = {msg: 'Disconnecting from browser...', id: 'gatherrunner-disconnect'};
+    const status = {msg: 'Disconnecting from browser...', id: 'lh:gather:disconnect'};
     log.time(status);
     return driver.disconnect().catch(err => {
       // Ignore disconnecting error if browser was already closed.
@@ -199,16 +199,19 @@ class GatherRunner {
       .concat(options.flags.blockedUrlPatterns || []);
     const blankPage = options.config.blankPage;
     const blankDuration = options.config.blankDuration;
+    const bpStatus = {msg: `Running beforePass methods`, id: `lh:gather:beforePass`};
+
     const pass = GatherRunner.loadBlank(options.driver, blankPage, blankDuration)
         // Set request blocking before any network activity
         // No "clearing" is done at the end of the pass since blockUrlPatterns([]) will unset all if
         // neccessary at the beginning of the next pass.
-        .then(() => options.driver.blockUrlPatterns(blockedUrls));
+        .then(() => options.driver.blockUrlPatterns(blockedUrls))
+        .then(_ => log.time(bpStatus, 'verbose'));
 
     return options.config.gatherers.reduce((chain, gatherer) => {
       const status = {
         msg: `Retrieving setup: ${gatherer.name}`,
-        id: `gather-${gatherer.name}-before`,
+        id: `lh:gather:beforePass:${gatherer.name}`,
       };
       return chain.then(_ => {
         log.time(status, 'verbose');
@@ -218,7 +221,7 @@ class GatherRunner {
       }).then(_ => {
         log.timeEnd(status);
       });
-    }, pass);
+    }, pass).then(_ => log.timeEnd(bpStatus));
   }
 
   /**
@@ -238,11 +241,12 @@ class GatherRunner {
 
     const status = {
       msg: 'Loading page & waiting for onload',
-      id: 'gatherrunner-loading',
+      id: 'lh:gather:loadPage',
       args: [gatherers.map(g => g.name).join(', ')],
     };
     log.time(status);
 
+    const pStatus = {msg: `Running pass methods`, id: `lh:gather:pass`};
     const pass = Promise.resolve()
       // Clear disk & memory cache if it's a perf run
       .then(_ => isPerfRun && driver.cleanBrowserCaches())
@@ -252,12 +256,13 @@ class GatherRunner {
       .then(_ => recordTrace && driver.beginTrace(options.flags))
       // Navigate.
       .then(_ => GatherRunner.loadPage(driver, options))
-      .then(_ => log.timeEnd(status, 'log'));
+      .then(_ => log.timeEnd(status, 'log'))
+      .then(_ => log.time(pStatus, 'verbose'));
 
     return gatherers.reduce((chain, gatherer) => {
       const status = {
         msg: `Retrieving in-page: ${gatherer.name}`,
-        id: `gather-${gatherer.name}-pass`,
+        id: `lh:gather:pass:${gatherer.name}`,
       };
       return chain.then(_ => {
         log.time(status, 'verbose');
@@ -267,7 +272,7 @@ class GatherRunner {
       }).then(_ => {
         log.timeEnd(status);
       });
-    }, pass);
+    }, pass).then(_ => log.timeEnd(pStatus));
   }
 
   /**
@@ -287,7 +292,7 @@ class GatherRunner {
     let pass = Promise.resolve();
 
     if (config.recordTrace) {
-      const status = {msg: 'Retrieving trace', id: `gatherrunner-trace`};
+      const status = {msg: 'Retrieving trace', id: `lh:gather:getTrace`};
       pass = pass.then(_ => {
         log.time(status);
         return driver.endTrace();
@@ -302,7 +307,10 @@ class GatherRunner {
     }
 
     pass = pass.then(_ => {
-      const status = {msg: 'Retrieving devtoolsLog and network records', id: `gatherrunner-log`};
+      const status = {
+        msg: 'Retrieving devtoolsLog & network records',
+        id: `lh:gather:getDevtoolsLog`,
+      };
       log.time(status);
       const devtoolsLog = driver.endDevtoolsLog();
       const networkRecords = NetworkRecorder.recordsFromLogs(devtoolsLog);
@@ -314,11 +322,17 @@ class GatherRunner {
       passData.networkRecords = networkRecords;
     });
 
+    const apStatus = {msg: `Running afterPass methods`, id: `lh:gather:afterPass`};
     // Disable throttling so the afterPass analysis isn't throttled
-    pass = pass.then(_ => driver.setThrottling(options.flags, {useThrottling: false}));
+    pass = pass
+        .then(_ => driver.setThrottling(options.flags, {useThrottling: false}))
+        .then(_ => log.time(apStatus, 'verbose'));
 
     pass = gatherers.reduce((chain, gatherer) => {
-      const status = {msg: `Retrieving: ${gatherer.name}`, id: `gather-${gatherer.name}-after`};
+      const status = {
+        msg: `Retrieving: ${gatherer.name}`,
+        id: `lh:gather:afterPass:${gatherer.name}`,
+      };
       return chain.then(_ => {
         log.time(status);
         const artifactPromise = Promise.resolve().then(_ => gatherer.afterPass(options, passData));
@@ -327,7 +341,7 @@ class GatherRunner {
       }).then(_ => {
         log.timeEnd(status);
       });
-    }, pass);
+    }, pass).then(_ => log.timeEnd(apStatus));
 
     // Resolve on tracing data using passName from config.
     return pass.then(_ => passData);

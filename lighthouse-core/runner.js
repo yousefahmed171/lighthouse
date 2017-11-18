@@ -25,7 +25,7 @@ class Runner {
 
     // List of top-level warnings for this Lighthouse run.
     const lighthouseRunWarnings = [];
-    const runnerStatus = {msg: 'Runner setup', id: 'runner.run'};
+    const runnerStatus = {msg: 'Runner setup', id: 'lh:runner:run'};
     log.time(runnerStatus, 'verbose');
 
     // save the initialUrl provided by the user
@@ -64,8 +64,6 @@ class Runner {
 
     // ... or that there are artifacts & audits.
     const validArtifactsAndAudits = config.artifacts && config.audits;
-
-
 
     // Make a run, which can be .then()'d with whatever needs to run (based on the config).
     let run = Promise.resolve();
@@ -106,7 +104,7 @@ class Runner {
       });
 
       run = run.then(artifacts => {
-        log.time({msg: 'Analyzing and running audits...', id: 'runner-auditall'});
+        log.time({msg: 'Analyzing and running audits...', id: 'lh:runner:auditing'});
         return artifacts;
       });
 
@@ -123,7 +121,7 @@ class Runner {
         return {artifacts, auditResults};
       });
     } else if (config.auditResults) {
-      log.time({msg: 'Analyzing and running audits...', id: 'runner-auditall'});
+      log.time({msg: 'Analyzing and running audits...', id: 'lh:runner:auditing'});
       // If there are existing audit results, surface those here.
       // Instantiate and return artifacts for consistency.
       const artifacts = Object.assign({}, config.artifacts || {},
@@ -143,8 +141,8 @@ class Runner {
     // Format and generate JSON report before returning.
     run = run
       .then(runResults => {
-        log.timeEnd({msg: 'Analyzing and running audits...', id: 'runner-auditall'});
-        const status = {msg: 'Generating results...', id: 'runner-generate'};
+        log.timeEnd({msg: 'Analyzing and running audits...', id: 'lh:runner:auditing'});
+        const status = {msg: 'Generating results...', id: 'lh:runner:generate'};
         log.time(status);
 
         const resultsById = runResults.auditResults.reduce((results, audit) => {
@@ -162,10 +160,10 @@ class Runner {
         }
 
         log.timeEnd(status);
+        // Summarize all the timings and drop onto the LHR
         const timing = {};
-        const entries = log.marky.getEntries().filter(e => e.entryType === 'measure');
-        timing.entries = entries;
-        entries.forEach(e => timing[e.name] = e.duration);
+        timing.entries = log.marky.getEntries();
+        timing.entries.forEach(e => timing[e.name] = e.duration);
 
         return {
           userAgent: runResults.artifacts.UserAgent,
@@ -203,7 +201,7 @@ class Runner {
   static _runAudit(audit, artifacts) {
     const status = {
       msg: `Evaluating: ${audit.meta.description}`,
-      id: `audit-${audit.meta.name}`,
+      id: `lh:audit:${audit.meta.name}`,
     };
 
     return Promise.resolve().then(_ => {
