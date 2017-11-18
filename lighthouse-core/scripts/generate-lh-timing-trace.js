@@ -8,7 +8,23 @@
 const fs = require('fs');
 const path = require('path');
 
-/* eslint-disable no-console */
+/**
+ * Technically, it's fine for usertiming measures to overlap, however non-async events make
+ * for a much clearer UI in traceviewer. We do this check to make sure we aren't passing off
+ * async-like measures as non-async.
+ * @param {!PerformanceEntry} entry user timing entry
+ * @param {!Array<PerformanceEntry>} prevEntries user timing entries
+ */
+function checkEventOverlap(entry, prevEntries) {
+  for (const prevEntry of prevEntries) {
+    const prevEnd = prevEntry.startTime + prevEntry.duration;
+    const thisEnd = entry.startTime + entry.duration;
+    const isOverlap = prevEnd > entry.startTime && prevEnd < thisEnd;
+    if (isOverlap) {
+      throw new Error(`Two measures overlap! ${prevEntry.name} & ${entry.name}`);
+    }
+  }
+}
 
 /**
  * Generates a chromium trace file from user timing measures
@@ -19,7 +35,10 @@ function generateTraceEvents(entries) {
   const currentTrace = [];
   let id = 0;
 
-  for (const entry of entries) {
+  entries.sort((a, b) => a.startTime - b.startTime);
+  entries.forEach((entry, i) => {
+    checkEventOverlap(entry, entries.slice(0, i));
+
     const traceEvent = {
       name: entry.name,
       cat: entry.entryType,
