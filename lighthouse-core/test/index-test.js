@@ -109,6 +109,7 @@ describe('Module Tests', function() {
       assert.ok(results.audits.viewport);
       assert.ok(results.timing);
       assert.equal(typeof results.timing.total, 'number');
+      assert.ok(results.timing.entries.length > 3, 'timing entries not populated');
     });
   });
 

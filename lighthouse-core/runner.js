@@ -26,12 +26,15 @@ class Runner {
 
     // List of top-level warnings for this Lighthouse run.
     const lighthouseRunWarnings = [];
+    const runnerStatus = {msg: 'Runner setup', id: 'lh:runner:run'};
+    log.time(runnerStatus, 'verbose');
 
     // save the initialUrl provided by the user
     opts.initialUrl = opts.url;
     if (typeof opts.initialUrl !== 'string' || opts.initialUrl.length === 0) {
       return Promise.reject(new Error('You must provide a url to the runner'));
     }
+
 
     let parsedURL;
     try {
@@ -64,7 +67,7 @@ class Runner {
     const validArtifactsAndAudits = config.artifacts && config.audits;
 
     // Make a run, which can be .then()'d with whatever needs to run (based on the config).
-    let run = Promise.resolve();
+    let run = Promise.resolve().then(_ => log.timeEnd(runnerStatus));
 
     // If there are passes run the GatherRunner and gather the artifacts. If not, we will need
     // to check that there are artifacts specified in the config, and throw if not.
@@ -100,7 +103,7 @@ class Runner {
       });
 
       run = run.then(artifacts => {
-        log.log('status', 'Analyzing and running audits...');
+        log.time({msg: 'Analyzing and running audits...', id: 'lh:runner:auditing'});
         return artifacts;
       });
 
@@ -117,6 +120,7 @@ class Runner {
         return {artifacts, auditResults};
       });
     } else if (config.auditResults) {
+      log.time({msg: 'Analyzing and running audits...', id: 'lh:runner:auditing'});
       // If there are existing audit results, surface those here.
       // Instantiate and return artifacts for consistency.
       const artifacts = Object.assign({}, config.artifacts || {},
@@ -136,7 +140,9 @@ class Runner {
     // Format and generate JSON report before returning.
     run = run
       .then(runResults => {
-        log.log('status', 'Generating results...');
+        log.timeEnd({msg: 'Analyzing and running audits...', id: 'lh:runner:auditing'});
+        const status = {msg: 'Generating results...', id: 'lh:runner:generate'};
+        log.time(status);
 
         const resultsById = runResults.auditResults.reduce((results, audit) => {
           results[audit.name] = audit;
@@ -151,6 +157,13 @@ class Runner {
           score = report.score;
         }
 
+        log.timeEnd(status);
+        // Summarize all the timings and drop onto the LHR
+        const timing = {};
+        timing.entries = log.getEntries();
+        log.clearEntries();
+        timing.entries.forEach(e => timing[e.name] = e.duration);
+
         return {
           userAgent: runResults.artifacts.UserAgent,
           lighthouseVersion: require('../package').version,
@@ -164,6 +177,7 @@ class Runner {
           score,
           reportCategories,
           reportGroups: config.groups,
+          timing,
         };
       })
       .catch(err => {
@@ -184,10 +198,13 @@ class Runner {
    * @private
    */
   static _runAudit(audit, artifacts) {
-    const status = `Evaluating: ${audit.meta.description}`;
+    const status = {
+      msg: `Evaluating: ${audit.meta.description}`,
+      id: `lh:audit:${audit.meta.name}`,
+    };
 
     return Promise.resolve().then(_ => {
-      log.log('status', status);
+      log.time(status);
 
       // Return an early error if an artifact required for the audit is missing or an error.
       for (const artifactName of audit.meta.requiredArtifacts) {
@@ -236,7 +253,7 @@ class Runner {
       // Non-fatal error become error audit result.
       return Audit.generateErrorAuditResult(audit, 'Audit error: ' + err.message);
     }).then(result => {
-      log.verbose('statusEnd', status);
+      log.timeEnd(status);
       return result;
     });
   }
@@ -290,6 +307,9 @@ class Runner {
    * @return {!ComputedArtifacts}
    */
   static instantiateComputedArtifacts() {
+    const status = {msg: 'Instantiating computed artifacts', id: 'lh:audit:init-computed'};
+    log.time(status, 'verbose');
+
     const computedArtifacts = {};
     const filenamesToSkip = [
       'computed-artifact.js', // the base class which other artifacts inherit
@@ -305,6 +325,7 @@ class Runner {
       // define the request* function that will be exposed on `artifacts`
       computedArtifacts['request' + artifact.name] = artifact.request.bind(artifact);
     });
+    log.timeEnd(status);
     return computedArtifacts;
   }
 

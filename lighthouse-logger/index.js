@@ -6,6 +6,8 @@
 'use strict';
 
 const debug = require('debug');
+const marky = require('marky');
+
 const EventEmitter = require('events').EventEmitter;
 const isWindows = process.platform === 'win32';
 
@@ -102,6 +104,42 @@ class Log {
     const snippet = (data.params && method !== 'IO.read') ?
       JSON.stringify(data.params).substr(0, maxLength) : '';
     Log._logToStdErr(`${prefix}:${level || ''}`, [method, snippet]);
+  }
+
+  /**
+   * Start a user timing measure
+   * @param {{msg: string, id: string, args: ?Array<*>}} status
+   * @param {string=} level
+   */
+  static time({msg, id, args=[]}, level='log') {
+    marky.mark(id);
+    Log[level]('status', msg, ...args);
+  }
+
+  /**
+   * End a user timing measure
+   * @param {{msg: string, id: string, args: ?Array<*>}} status
+   * @param {string=} level
+   * @return {!PerformanceEntry}
+   */
+  static timeEnd({msg, id, args=[]}, level='verbose') {
+    Log[level]('statusEnd', msg, ...args);
+    return marky.stop(id);
+  }
+
+  /**
+   * Get user timing measures
+   * @return {!Array<PerformanceEntry>}
+   */
+  static getEntries() {
+    return marky.getEntries();
+  }
+
+  /**
+   * Clear any user timing measures
+   */
+  static clearEntries() {
+    marky.clear();
   }
 
   static log(title, ...args) {

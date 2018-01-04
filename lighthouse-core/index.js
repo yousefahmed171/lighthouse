@@ -33,7 +33,8 @@ const Config = require('./config/config');
  * @return {!Promise<!LH.Results>}
  */
 function lighthouse(url, flags = {}, configJSON) {
-  const startTime = Date.now();
+  const overallStatus = {msg: 'Overall', id: 'lh:index'};
+  log.time(overallStatus, 'verbose');
   return Promise.resolve().then(_ => {
     // set logging preferences, assume quiet
     flags.logLevel = flags.logLevel || 'error';
@@ -41,17 +42,13 @@ function lighthouse(url, flags = {}, configJSON) {
 
     // Use ConfigParser to generate a valid config file
     const config = new Config(configJSON, flags.configPath);
-
     const connection = new ChromeProtocol(flags.port, flags.hostname);
 
     // kick off a lighthouse run
     return Runner.run(connection, {url, flags, config})
       .then(lighthouseResults => {
-        // Annotate with time to run lighthouse.
-        const endTime = Date.now();
-        lighthouseResults.timing = lighthouseResults.timing || {};
-        lighthouseResults.timing.total = endTime - startTime;
-
+        const totalEntry = log.timeEnd(overallStatus);
+        finalizeEndTime(totalEntry, lighthouseResults);
         return lighthouseResults;
       });
   });
@@ -63,3 +60,13 @@ lighthouse.Audit = require('./audits/audit');
 lighthouse.Gatherer = require('./gather/gatherers/gatherer');
 
 module.exports = lighthouse;
+/**
+ * Add timing entry for the overall LH run
+ */
+function finalizeEndTime(totalEntry, lighthouseResults) {
+  lighthouseResults.timing = lighthouseResults.timing || {};
+  lighthouseResults.timing.entries = lighthouseResults.timing.entries || [];
+  lighthouseResults.timing.entries.push(totalEntry);
+  // preserve lhr.timing.total for backcompatibility
+  lighthouseResults.timing.total = totalEntry.duration;
+}

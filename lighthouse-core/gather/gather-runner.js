@@ -65,7 +65,11 @@ class GatherRunner {
    * @return {!Promise}
    */
   static loadBlank(driver, url = 'about:blank', duration = 300) {
-    return driver.gotoURL(url).then(_ => new Promise(resolve => setTimeout(resolve, duration)));
+    const status = {msg: 'Resetting state with about:blank', id: 'lh:gather:loadBlank'};
+    log.time(status);
+    return driver.gotoURL(url)
+      .then(_ => new Promise(resolve => setTimeout(resolve, duration)))
+      .then(_ => log.timeEnd(status));
   }
 
   /**
@@ -95,7 +99,8 @@ class GatherRunner {
    * @return {!Promise}
    */
   static setupDriver(driver, gathererResults, options) {
-    log.log('status', 'Initializing…');
+    const status = {msg: 'Initializing…', id: 'lh:gather:setupDriver'};
+    log.time(status);
     const resetStorage = !options.flags.disableStorageReset;
     // Enable emulation based on flags
     return driver.assertNoSameOriginServiceWorkerClients(options.url)
@@ -109,17 +114,20 @@ class GatherRunner {
       .then(_ => driver.cacheNatives())
       .then(_ => driver.registerPerformanceObserver())
       .then(_ => driver.dismissJavaScriptDialogs())
-      .then(_ => resetStorage && driver.clearDataForOrigin(options.url));
+      .then(_ => resetStorage && driver.clearDataForOrigin(options.url))
+      .then(_ => log.timeEnd(status));
   }
 
   static disposeDriver(driver) {
-    log.log('status', 'Disconnecting from browser...');
-    return driver.disconnect().catch(err => {
+    const status = {msg: 'Disconnecting from browser...', id: 'lh:gather:disconnect'};
+    log.time(status);
+    return driver.disconnect().then(_ => log.timeEnd(status)).catch(err => {
       // Ignore disconnecting error if browser was already closed.
       // See https://github.com/GoogleChrome/lighthouse/issues/1583
       if (!(/close\/.*status: 500$/.test(err.message))) {
         log.error('GatherRunner disconnect', err.message);
       }
+      log.timeEnd(status);
     });
   }
 
@@ -194,19 +202,29 @@ class GatherRunner {
       .concat(options.flags.blockedUrlPatterns || []);
     const blankPage = options.config.blankPage;
     const blankDuration = options.config.blankDuration;
+    const bpStatus = {msg: `Running beforePass methods`, id: `lh:gather:beforePass`};
+
     const pass = GatherRunner.loadBlank(options.driver, blankPage, blankDuration)
         // Set request blocking before any network activity
         // No "clearing" is done at the end of the pass since blockUrlPatterns([]) will unset all if
         // neccessary at the beginning of the next pass.
-        .then(() => options.driver.blockUrlPatterns(blockedUrls));
+        .then(() => options.driver.blockUrlPatterns(blockedUrls))
+        .then(_ => log.time(bpStatus, 'verbose'));
 
     return options.config.gatherers.reduce((chain, gatherer) => {
+      const status = {
+        msg: `Retrieving setup: ${gatherer.name}`,
+        id: `lh:gather:beforePass:${gatherer.name}`,
+      };
       return chain.then(_ => {
+        log.time(status, 'verbose');
         const artifactPromise = Promise.resolve().then(_ => gatherer.beforePass(options));
         gathererResults[gatherer.name] = [artifactPromise];
         return GatherRunner.recoverOrThrow(artifactPromise);
+      }).then(_ => {
+        log.timeEnd(status);
       });
-    }, pass);
+    }, pass).then(_ => log.timeEnd(bpStatus));
   }
 
   /**
@@ -224,10 +242,14 @@ class GatherRunner {
     const recordTrace = config.recordTrace;
     const isPerfRun = !options.flags.disableStorageReset && recordTrace && config.useThrottling;
 
-    const gatherernames = gatherers.map(g => g.name).join(', ');
-    const status = 'Loading page & waiting for onload';
-    log.log('status', status, gatherernames);
+    const status = {
+      msg: 'Loading page & waiting for onload',
+      id: 'lh:gather:loadPage',
+      args: [gatherers.map(g => g.name).join(', ')],
+    };
+    log.time(status);
 
+    const pStatus = {msg: `Running pass methods`, id: `lh:gather:pass`};
     const pass = Promise.resolve()
       // Clear disk & memory cache if it's a perf run
       .then(_ => isPerfRun && driver.cleanBrowserCaches())
@@ -237,15 +259,23 @@ class GatherRunner {
       .then(_ => recordTrace && driver.beginTrace(options.flags))
       // Navigate.
       .then(_ => GatherRunner.loadPage(driver, options))
-      .then(_ => log.log('statusEnd', status));
+      .then(_ => log.timeEnd(status, 'log'))
+      .then(_ => log.time(pStatus, 'verbose'));
 
     return gatherers.reduce((chain, gatherer) => {
+      const status = {
+        msg: `Retrieving in-page: ${gatherer.name}`,
+        id: `lh:gather:pass:${gatherer.name}`,
+      };
       return chain.then(_ => {
+        log.time(status, 'verbose');
         const artifactPromise = Promise.resolve().then(_ => gatherer.pass(options));
         gathererResults[gatherer.name].push(artifactPromise);
         return GatherRunner.recoverOrThrow(artifactPromise);
+      }).then(_ => {
+        log.timeEnd(status);
       });
-    }, pass);
+    }, pass).then(_ => log.timeEnd(pStatus));
   }
 
   /**
@@ -266,8 +296,9 @@ class GatherRunner {
     let pageLoadError;
 
     if (config.recordTrace) {
+      const status = {msg: 'Retrieving trace', id: `lh:gather:getTrace`};
       pass = pass.then(_ => {
-        log.log('status', 'Retrieving trace');
+        log.time(status);
         return driver.endTrace();
       }).then(traceContents => {
         // Before Chrome 54.0.2816 (codereview.chromium.org/2161583004),
@@ -275,16 +306,19 @@ class GatherRunner {
         // an object with a traceEvents property. Normalize to object form.
         passData.trace = Array.isArray(traceContents) ?
             {traceEvents: traceContents} : traceContents;
-        log.verbose('statusEnd', 'Retrieving trace');
+        log.timeEnd(status);
       });
     }
 
     pass = pass.then(_ => {
-      const status = 'Retrieving devtoolsLog and network records';
-      log.log('status', status);
+      const status = {
+        msg: 'Retrieving devtoolsLog & network records',
+        id: `lh:gather:getDevtoolsLog`,
+      };
+      log.time(status);
       const devtoolsLog = driver.endDevtoolsLog();
       const networkRecords = NetworkRecorder.recordsFromLogs(devtoolsLog);
-      log.verbose('statusEnd', status);
+      log.timeEnd(status);
 
       pageLoadError = GatherRunner.getPageLoadError(options.url, networkRecords);
       // If the driver was offline, a page load error is expected, so do not save it.
@@ -301,22 +335,28 @@ class GatherRunner {
       passData.networkRecords = networkRecords;
     });
 
+    const apStatus = {msg: `Running afterPass methods`, id: `lh:gather:afterPass`};
     // Disable throttling so the afterPass analysis isn't throttled
-    pass = pass.then(_ => driver.setThrottling(options.flags, {useThrottling: false}));
+    pass = pass
+        .then(_ => driver.setThrottling(options.flags, {useThrottling: false}))
+        .then(_ => log.time(apStatus, 'verbose'));
 
     pass = gatherers.reduce((chain, gatherer) => {
-      const status = `Retrieving: ${gatherer.name}`;
+      const status = {
+        msg: `Retrieving: ${gatherer.name}`,
+        id: `lh:gather:afterPass:${gatherer.name}`,
+      };
       return chain.then(_ => {
-        log.log('status', status);
+        log.time(status);
         const artifactPromise = pageLoadError ?
           Promise.reject(pageLoadError) :
           Promise.resolve().then(_ => gatherer.afterPass(options, passData));
         gathererResults[gatherer.name].push(artifactPromise);
         return GatherRunner.recoverOrThrow(artifactPromise);
       }).then(_ => {
-        log.verbose('statusEnd', status);
+        log.timeEnd(status);
       });
-    }, pass);
+    }, pass).then(_ => log.timeEnd(apStatus));
 
     // Resolve on tracing data using passName from config.
     return pass.then(_ => passData);
@@ -331,6 +371,9 @@ class GatherRunner {
    * @return {!Promise<!Artifacts>}
    */
   static collectArtifacts(gathererResults) {
+    const status = {msg: `Collecting artifacts`, id: `lh:gather:collect-artifacts`};
+    log.time(status);
+
     const artifacts = {};
 
     // Nest LighthouseRunWarnings, if any, so they will be collected into artifact.
@@ -364,7 +407,7 @@ class GatherRunner {
       }
 
       return artifacts;
-    });
+    }).then(artifacts => log.timeEnd(status) && artifacts);
   }
 
   static run(passes, options) {
@@ -490,7 +533,10 @@ class GatherRunner {
   }
 
   static instantiateGatherers(passes, rootPath) {
-    return passes.map(pass => {
+    const status = {msg: 'Instantiating gatherers', id: 'lh:init:instantiateGatherers'};
+    log.time(status, 'verbose');
+
+    const gatherers = passes.map(pass => {
       pass.gatherers = pass.gatherers.map(gatherer => {
         // If this is already instantiated, don't do anything else.
         if (typeof gatherer !== 'string') {
@@ -503,6 +549,8 @@ class GatherRunner {
 
       return pass;
     });
+    log.timeEnd(status);
+    return gatherers;
   }
 }
 

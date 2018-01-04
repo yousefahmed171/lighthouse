@@ -98,7 +98,9 @@ class Driver {
    * @return {!Promise<null>}
    */
   connect() {
-    return this._connection.connect();
+    const status = {msg: 'Connecting to browser', id: 'lh:init:connect'};
+    log.time(status);
+    return this._connection.connect().then(_ => log.timeEnd(status));
   }
 
   disconnect() {
