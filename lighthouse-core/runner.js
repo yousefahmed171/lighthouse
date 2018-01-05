@@ -142,20 +142,19 @@ class Runner {
 
     opts.driver = opts.driverMock || new Driver(connection);
     return GatherRunner.run(opts.config.passes, opts).then(artifacts => {
-      const flags = opts.flags;
-      const shouldSave = flags.gatherMode;
-      const p = shouldSave ? Runner._saveArtifacts(artifacts): Promise.resolve();
-      return p.then(_ => artifacts);
+      return Runner._saveArtifacts(opts, artifacts).then(_ => artifacts);
     });
   }
 
   /**
    * Save collected artifacts to disk
+   * @param {*} opts
    * @param {!Artifacts} artifacts
    * @return {!Promise>}
    */
-  static _saveArtifacts(artifacts) {
-    return assetSaver.saveArtifacts(artifacts, basePath);
+  static _saveArtifacts(opts, artifacts) {
+    const shouldSave = opts.flags.gatherMode;
+    return shouldSave ? assetSaver.saveArtifacts(artifacts, basePath) : Promise.resolve();
   }
 
   /**
