@@ -6,6 +6,7 @@
 // @ts-nocheck
 'use strict';
 
+const assert = require('assert');
 const log = require('lighthouse-logger');
 const Audit = require('../audits/audit');
 const URL = require('../lib/url-shim');
@@ -348,6 +349,19 @@ class GatherRunner {
           if (artifact === undefined) {
             throw new Error(`${gathererName} failed to provide an artifact.`);
           }
+          try {
+            // Make sure the artifact can be serialized (for Gather mode)
+            // TODO: add log.time() block around this to monitor
+            const start = Date.now();
+            const reparsed = JSON.parse(JSON.stringify(artifact));
+            assert.deepStrictEqual(reparsed, artifact);
+            const duration = Date.now() - start;
+            console.log(`${duration}ms to check ${gathererName}`)
+          } catch (e) {
+            console.error(e);
+            // throw new Error(`${gathererName} artifact isn't serializable`);
+          }
+
           artifacts[gathererName] = artifact;
         }, err => {
           // To reach this point, all errors are non-fatal, so return err to
