@@ -76,7 +76,14 @@ class Audit {
    * @return {!DetailsRenderer.DetailsJSON}
    */
   static makeTableDetails(headings, results) {
-    // todo: empty the headings obj if results.length === 0
+    if (results.length === 0) {
+      return {
+        type: 'table',
+        headings: [],
+        items: [],
+      };
+    }
+
     return {
       type: 'table',
       headings: headings,
@@ -116,7 +123,7 @@ class Audit {
       rawValue: result.rawValue,
       error: result.error,
       debugString: result.debugString,
-      extendedInfo: {}, // TODO: restore this. result.extendedInfo,
+      extendedInfo: result.extendedInfo,
       scoringMode: audit.meta.scoringMode || Audit.SCORING_MODES.BINARY,
       informative: audit.meta.informative,
       manual: audit.meta.manual,
