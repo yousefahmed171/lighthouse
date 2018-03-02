@@ -7,8 +7,24 @@
 
 /* eslint-disable max-len */
 
+const emulation = require('../lib/emulation');
+
 module.exports = {
-  settings: {},
+  settings: {
+    onlyAudits: ['first-contentful-paint'],
+    throttling: {
+      // method: 'devtools',
+      // requestLatency: emulation.settings.TYPICAL_MOBILE_THROTTLING_METRICS.latency,
+      // downloadThroughput: emulation.settings.TYPICAL_MOBILE_THROTTLING_METRICS.downloadThroughput,
+      // uploadThroughput: emulation.settings.TYPICAL_MOBILE_THROTTLING_METRICS.uploadThroughput,
+
+      method: 'lantern',
+      rtt: 160,
+      throughput: 128 * 1000,
+
+      cpuSlowdownMultiplier: emulation.settings.CPU_THROTTLE_METRICS.rate,
+    },
+  },
   passes: [{
     passName: 'defaultPass',
     recordTrace: true,
@@ -72,6 +88,7 @@ module.exports = {
     ],
   }],
   audits: [
+    'first-contentful-paint',
     'is-on-https',
     'redirects-http',
     'service-worker',
@@ -264,6 +281,7 @@ module.exports = {
       name: 'Performance',
       description: 'These encapsulate your web app\'s current performance and opportunities to improve it.',
       audits: [
+        {id: 'first-contentful-paint', weight: 5, group: 'perf-metric'},
         {id: 'first-meaningful-paint', weight: 5, group: 'perf-metric'},
         {id: 'first-interactive', weight: 5, group: 'perf-metric'},
         {id: 'consistently-interactive', weight: 5, group: 'perf-metric'},

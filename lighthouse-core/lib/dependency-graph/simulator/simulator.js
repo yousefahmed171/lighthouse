@@ -22,7 +22,7 @@ const DEFAULT_THROUGHPUT = emulation.TYPICAL_MOBILE_THROTTLING_METRICS.targetDow
 // same multiplier as Lighthouse uses for CPU emulation
 const DEFAULT_CPU_TASK_MULTIPLIER = emulation.CPU_THROTTLE_METRICS.rate;
 // layout tasks tend to be less CPU-bound and do not experience the same increase in duration
-const DEFAULT_LAYOUT_TASK_MULTIPLIER = DEFAULT_CPU_TASK_MULTIPLIER / 2;
+const LAYOUT_TASK_MULTIPLIER_OF_CPU = 0.5;
 // if a task takes more than 10 seconds it's usually a sign it isn't actually CPU bound and we're overestimating
 const DEFAULT_MAXIMUM_CPU_TASK_DURATION = 10000;
 
@@ -45,8 +45,7 @@ class Simulator {
         rtt: DEFAULT_RTT,
         throughput: DEFAULT_THROUGHPUT,
         maximumConcurrentRequests: DEFAULT_MAXIMUM_CONCURRENT_REQUESTS,
-        cpuTaskMultiplier: DEFAULT_CPU_TASK_MULTIPLIER,
-        layoutTaskMultiplier: DEFAULT_LAYOUT_TASK_MULTIPLIER,
+        cpuSlowdownMultiplier: DEFAULT_CPU_TASK_MULTIPLIER,
       },
       options
     );
@@ -57,8 +56,8 @@ class Simulator {
       TcpConnection.maximumSaturatedConnections(this._rtt, this._throughput),
       this._options.maximumConcurrentRequests
     );
-    this._cpuTaskMultiplier = this._options.cpuTaskMultiplier;
-    this._layoutTaskMultiplier = this._options.layoutTaskMultiplier;
+    this._cpuSlowdownMultiplier = this._options.cpuSlowdownMultiplier;
+    this._layoutTaskMultiplier = this._options.cpuSlowdownMultiplier * LAYOUT_TASK_MULTIPLIER_OF_CPU;
 
     this._nodeTiming = new Map();
     this._numberInProgressByType = new Map();
@@ -206,7 +205,7 @@ class Simulator {
       const timingData = this._nodeTiming.get(node);
       const multiplier = (/** @type {CpuNode} */ (node)).didPerformLayout()
         ? this._layoutTaskMultiplier
-        : this._cpuTaskMultiplier;
+        : this._cpuSlowdownMultiplier;
       const totalDuration = Math.min(
         Math.round((/** @type {CpuNode} */ (node)).event.dur / 1000 * multiplier),
         DEFAULT_MAXIMUM_CPU_TASK_DURATION
@@ -360,7 +359,7 @@ module.exports = Simulator;
  * @property {number} [throughput]
  * @property {number} [fallbackTTFB]
  * @property {number} [maximumConcurrentRequests]
- * @property {number} [cpuTaskMultiplier]
+ * @property {number} [cpuSlowdownMultiplier]
  * @property {number} [layoutTaskMultiplier]
  */
 

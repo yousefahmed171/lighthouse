@@ -341,6 +341,7 @@ class Config {
     this._artifacts = expandArtifacts(configJSON.artifacts);
     this._categories = configJSON.categories;
     this._groups = configJSON.groups;
+    this._settings = configJSON.settings || {};
 
     // validatePasses must follow after audits are required
     validatePasses(configJSON.passes, this._audits);
@@ -747,6 +748,11 @@ class Config {
   /** @type {Object<string, {title: string, description: string}>|undefined} */
   get groups() {
     return this._groups;
+  }
+
+  /** @type {Object} */
+  get settings() {
+    return this._settings;
   }
 }
 

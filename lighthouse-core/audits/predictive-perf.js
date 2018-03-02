@@ -74,40 +74,6 @@ class PredictivePerf extends Audit {
 
   /**
    * @param {!Node} dependencyGraph
-   * @return {!Object}
-   */
-  static computeRTTAndServerResponseTime(dependencyGraph) {
-    const records = [];
-    dependencyGraph.traverse(node => {
-      if (node.type === Node.TYPES.NETWORK) records.push(node.record);
-    });
-
-    // First pass compute the estimated observed RTT to each origin's servers.
-    const rttByOrigin = new Map();
-    for (const [origin, summary] of NetworkAnalyzer.estimateRTTByOrigin(records).entries()) {
-      rttByOrigin.set(origin, summary.min);
-    }
-
-    // We'll use the minimum RTT as the assumed connection latency since we care about how much addt'l
-    // latency each origin introduces as Lantern will be simulating with its own connection latency.
-    const minimumRtt = Math.min(...Array.from(rttByOrigin.values()));
-    // We'll use the observed RTT information to help estimate the server response time
-    const responseTimeSummaries = NetworkAnalyzer.estimateServerResponseTimeByOrigin(records, {
-      rttByOrigin,
-    });
-
-    const additionalRttByOrigin = new Map();
-    const serverResponseTimeByOrigin = new Map();
-    for (const [origin, summary] of responseTimeSummaries.entries()) {
-      additionalRttByOrigin.set(origin, rttByOrigin.get(origin) - minimumRtt);
-      serverResponseTimeByOrigin.set(origin, summary.median);
-    }
-
-    return {additionalRttByOrigin, serverResponseTimeByOrigin};
-  }
-
-  /**
-   * @param {!Node} dependencyGraph
    * @param {!TraceOfTabArtifact} traceOfTab
    * @return {!Node}
    */
@@ -245,7 +211,7 @@ class PredictivePerf extends Audit {
     const trace = artifacts.traces[Audit.DEFAULT_PASS];
     const devtoolsLogs = artifacts.devtoolsLogs[Audit.DEFAULT_PASS];
     return Promise.all([
-      artifacts.requestPageDependencyGraph(trace, devtoolsLogs),
+      artifacts.requestPageDependencyGraph({trace, devtoolsLogs}),
       artifacts.requestTraceOfTab(trace),
     ]).then(([graph, traceOfTab]) => {
       const graphs = {

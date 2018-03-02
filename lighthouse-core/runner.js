@@ -178,7 +178,7 @@ class Runner {
     let promise = Promise.resolve();
     for (const auditDefn of opts.config.audits) {
       promise = promise.then(_ => {
-        return Runner._runAudit(auditDefn, artifacts).then(ret => auditResults.push(ret));
+        return Runner._runAudit(auditDefn, artifacts, opts.config).then(ret => auditResults.push(ret));
       });
     }
     return promise.then(_ => {
@@ -203,7 +203,7 @@ class Runner {
    * @return {!Promise<!AuditResult>}
    * @private
    */
-  static _runAudit(auditDefn, artifacts) {
+  static _runAudit(auditDefn, artifacts, config) {
     const audit = auditDefn.implementation;
     const status = `Evaluating: ${audit.meta.description}`;
 
@@ -244,11 +244,11 @@ class Runner {
         }
       }
       // all required artifacts are in good shape, so we proceed
-      return audit.audit(artifacts, {options: auditDefn.options || {}});
+      return audit.audit(artifacts, {config, options: auditDefn.options || {}});
     // Fill remaining audit result fields.
     }).then(auditResult => Audit.generateAuditResult(audit, auditResult))
     .catch(err => {
-      log.warn(audit.meta.name, `Caught exception: ${err.message}`);
+      log.warn(audit.meta.name, `Caught exception: ${err.stack}`);
       if (err.fatal) {
         throw err;
       }
