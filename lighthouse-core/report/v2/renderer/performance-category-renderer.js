@@ -16,7 +16,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
   _renderTimelineMetricAudit(audit, scale) {
     const tmpl = this.dom.cloneTemplate('#tmpl-lh-timeline-metric', this.templateContext);
     const element = this.dom.find('.lh-timeline-metric', tmpl);
-    element.classList.add(`lh-timeline-metric--${Util.calculateRating(audit.score)}`);
+    element.classList.add(`lh-timeline-metric--${Util.calculateRating(audit.result.score)}`);
 
     const titleEl = this.dom.find('.lh-timeline-metric__title', tmpl);
     titleEl.textContent = audit.result.description;
@@ -45,13 +45,11 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
    * @return {!Element}
    */
   _renderPerfHintAudit(audit, scale) {
-    const extendedInfo = /** @type {!PerformanceCategoryRenderer.PerfHintExtendedInfo}
-        */ (audit.result.extendedInfo);
     const tooltipAttrs = {title: audit.result.displayValue};
 
     const element = this.dom.createElement('details', [
       'lh-perf-hint',
-      `lh-perf-hint--${Util.calculateRating(audit.score)}`,
+      `lh-perf-hint--${Util.calculateRating(audit.result.score)}`,
       'lh-expandable-details',
     ].join(' '));
 
@@ -62,9 +60,21 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
 
     this.dom.createChildOf(summary, 'div', 'lh-toggle-arrow', {title: 'See resources'});
 
-    if (!extendedInfo || typeof audit.result.rawValue !== 'number') {
+    if (audit.result.error) {
       const debugStrEl = this.dom.createChildOf(summary, 'div', 'lh-debug');
-      debugStrEl.textContent = audit.result.debugString || 'Report error: no extended information';
+      debugStrEl.textContent = audit.result.debugString || 'Audit error';
+      return element;
+    }
+
+    const details = audit.result.details;
+    const summaryInfo = /** @type {!DetailsRenderer.DetailsSummary}
+        */ (details && details.summary);
+    // eslint-disable-next-line no-console
+    console.assert(summaryInfo, 'Missing `summary` for perf-hint audit');
+    // eslint-disable-next-line no-console
+    console.assert(typeof summaryInfo.wastedMs === 'number',
+        'Missing numeric `summary.wastedMs` for perf-hint audit');
+    if (!summaryInfo || !summaryInfo.wastedMs) {
       return element;
     }
 
@@ -72,15 +82,15 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
         tooltipAttrs);
     const sparklineEl = this.dom.createChildOf(sparklineContainerEl, 'div', 'lh-sparkline');
     const sparklineBarEl = this.dom.createChildOf(sparklineEl, 'div', 'lh-sparkline__bar');
-    sparklineBarEl.style.width = audit.result.rawValue / scale * 100 + '%';
+    sparklineBarEl.style.width = summaryInfo.wastedMs / scale * 100 + '%';
 
     const statsEl = this.dom.createChildOf(summary, 'div', 'lh-perf-hint__stats', tooltipAttrs);
     const statsMsEl = this.dom.createChildOf(statsEl, 'div', 'lh-perf-hint__primary-stat');
-    statsMsEl.textContent = Util.formatMilliseconds(audit.result.rawValue);
+    statsMsEl.textContent = Util.formatMilliseconds(summaryInfo.wastedMs);
 
-    if (extendedInfo.value.wastedKb) {
+    if (summaryInfo.wastedBytes) {
       const statsKbEl = this.dom.createChildOf(statsEl, 'div', 'lh-perf-hint__secondary-stat');
-      statsKbEl.textContent = Util.formatNumber(extendedInfo.value.wastedKb) + ' KB';
+      statsKbEl.textContent = Util.formatBytesToKB(summaryInfo.wastedBytes);
     }
 
     const descriptionEl = this.dom.createChildOf(element, 'div', 'lh-perf-hint__description');
@@ -91,8 +101,9 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
       debugStrEl.textContent = audit.result.debugString;
     }
 
-    if (audit.result.details) {
-      element.appendChild(this.detailsRenderer.render(audit.result.details));
+    // If there's no `type`, then we only used details for `summary`
+    if (details.type) {
+      element.appendChild(this.detailsRenderer.render(details));
     }
 
     return element;
@@ -141,7 +152,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
     element.appendChild(metricAuditsEl);
 
     const hintAudits = category.audits
-        .filter(audit => audit.group === 'perf-hint' && audit.score < 100)
+        .filter(audit => audit.group === 'perf-hint' && audit.result.score < 100)
         .sort((auditA, auditB) => auditB.result.rawValue - auditA.result.rawValue);
     if (hintAudits.length) {
       const maxWaste = Math.max(...hintAudits.map(audit => audit.result.rawValue));
@@ -153,7 +164,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
     }
 
     const infoAudits = category.audits
-        .filter(audit => audit.group === 'perf-info' && audit.score < 100);
+        .filter(audit => audit.group === 'perf-info' && audit.result.score < 100);
     if (infoAudits.length) {
       const infoAuditsEl = this.renderAuditGroup(groups['perf-info'], {expandable: false});
       infoAudits.forEach(item => infoAuditsEl.appendChild(this.renderAudit(item)));
@@ -163,7 +174,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
 
     const passedElements = category.audits
         .filter(audit => (audit.group === 'perf-hint' || audit.group === 'perf-info') &&
-            audit.score === 100)
+            audit.result.score === 100)
         .map(audit => this.renderAudit(audit));
 
     if (!passedElements.length) return element;
@@ -179,13 +190,3 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
   self.PerformanceCategoryRenderer = PerformanceCategoryRenderer;
 }
-
-/**
- * @typedef {{
- *     value: {
- *       wastedMs: (number|undefined),
- *       wastedKb: (number|undefined),
- *     }
- * }}
- */
-PerformanceCategoryRenderer.PerfHintExtendedInfo; // eslint-disable-line no-unused-expressions

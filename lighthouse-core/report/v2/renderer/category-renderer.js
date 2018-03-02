@@ -45,7 +45,7 @@ class CategoryRenderer {
 
     // Append audit details to header section so the entire audit is within a <details>.
     const header = /** @type {!HTMLDetailsElement} */ (this.dom.find('.lh-score__header', tmpl));
-    if (audit.result.details) {
+    if (audit.result.details && audit.result.details.type) {
       header.appendChild(this.detailsRenderer.render(audit.result.details));
     }
 
@@ -57,7 +57,7 @@ class CategoryRenderer {
       scoreEl.classList.add('lh-score--manual');
     }
 
-    return this._populateScore(tmpl, audit.score, scoringMode, title, description);
+    return this._populateScore(tmpl, audit.result.score, scoringMode, title, description);
   }
 
   /**
@@ -203,9 +203,10 @@ class CategoryRenderer {
     const auditsGroupedByGroup = /** @type {!Object<string,
         !Array<!ReportRenderer.AuditJSON>>} */ ({});
     manualAudits.forEach(audit => {
-      const group = auditsGroupedByGroup[audit.group] || [];
+      const groupId = audit.group || 'ungrouped';
+      const group = auditsGroupedByGroup[groupId] || [];
       group.push(audit);
-      auditsGroupedByGroup[audit.group] = group;
+      auditsGroupedByGroup[groupId] = group;
     });
 
     Object.keys(auditsGroupedByGroup).forEach(groupId => {
@@ -295,7 +296,7 @@ class CategoryRenderer {
 
       if (audit.result.notApplicable) {
         group.notApplicable.push(audit);
-      } else if (audit.score === 100 && !audit.result.debugString) {
+      } else if (audit.result.score === 100 && !audit.result.debugString) {
         group.passed.push(audit);
       } else {
         group.failed.push(audit);

@@ -71,53 +71,26 @@ class Audit {
   }
 
   /**
-   * Table cells will use the type specified in headings[x].itemType. However a custom type
-   * can be provided: results[x].propName = {type: 'code', text: '...'}
-   * @param {!Audit.Headings} headings
-   * @param {!Array<!Object<string, *>>} results
-   * @return {!Array<!DetailsRenderer.DetailsJSON>}
-   */
-  static makeTableRows(headings, results) {
-    const tableRows = results.map(item => {
-      return headings.map(heading => {
-        const value = item[heading.key];
-        if (typeof value === 'object' && value && value.type) return value;
-
-        return {
-          type: heading.itemType,
-          text: value,
-        };
-      });
-    });
-    return tableRows;
-  }
-
-  /**
-   * @param {!Audit.Headings} headings
-   * @return {!Array<!DetailsRenderer.DetailsJSON>}
-   */
-  static makeTableHeaders(headings) {
-    return headings.map(heading => ({
-      type: 'text',
-      itemKey: heading.key,
-      itemType: heading.itemType,
-      text: heading.text,
-    }));
-  }
-
-  /**
    * @param {!Audit.Headings} headings
    * @param {!Array<!Object<string, string>>} results
+   * @param {!DetailsRenderer.DetailsSummary} summary
    * @return {!DetailsRenderer.DetailsJSON}
    */
-  static makeTableDetails(headings, results) {
-    const tableHeaders = Audit.makeTableHeaders(headings);
-    const tableRows = Audit.makeTableRows(headings, results);
+  static makeTableDetails(headings, results, summary) {
+    if (results.length === 0) {
+      return {
+        type: 'table',
+        headings: [],
+        items: [],
+        summary,
+      };
+    }
+
     return {
       type: 'table',
-      header: 'View Details',
-      itemHeaders: tableHeaders,
-      items: tableRows,
+      headings: headings,
+      items: results,
+      summary,
     };
   }
 
@@ -141,12 +114,27 @@ class Audit {
     if (displayValue === score) {
       displayValue = '';
     }
+
+    // TODO: restore after initial 3.0 branching
+    // if (typeof score === 'boolean' || score === null) {
+    //   score = score ? 100 : 0;
+    // }
+
+    // if (!Number.isFinite(score)) {
+    //   throw new Error(`Invalid score: ${score}`);
+    // }
+
+    // TODO, don't consider an auditResult's scoringMode (currently applied to all ByteEfficiency)
+    const scoringMode = result.scoringMode || audit.meta.scoringMode || Audit.SCORING_MODES.BINARY;
+    delete result.scoringMode;
+
     let auditDescription = audit.meta.description;
     if (audit.meta.failureDescription) {
       if (!score || (typeof score === 'number' && score < 100)) {
         auditDescription = audit.meta.failureDescription;
       }
     }
+
     return {
       score,
       displayValue: `${displayValue}`,
@@ -154,7 +142,7 @@ class Audit {
       error: result.error,
       debugString: result.debugString,
       extendedInfo: result.extendedInfo,
-      scoringMode: audit.meta.scoringMode || Audit.SCORING_MODES.BINARY,
+      scoringMode,
       informative: audit.meta.informative,
       manual: audit.meta.manual,
       notApplicable: result.notApplicable,
@@ -172,7 +160,6 @@ module.exports = Audit;
  * @typedef {Object} Audit.Heading
  * @property {string} key
  * @property {string} itemType
- * @property {string} itemKey
  * @property {string} text
  */
 

@@ -181,6 +181,13 @@ function collateResults(actual, expected) {
       throw new Error(`Config did not trigger run of expected audit ${auditName}`);
     }
 
+    // TODO: TERRIBLE HACK, remove asap
+    // Smokehouse has been asserting the AuditResult.score, whereas report cares about AuditDfn score (within reportCategories)
+    // A subsequent PR will change scores completely which means rebaselining all our smokehouse expectations
+    if (actualResult.scoringMode === 'binary') {
+      actualResult.score = Boolean(actualResult.score);
+    }
+
     const expectedResult = expected.audits[auditName];
     const diff = findDifference(auditName, actualResult, expectedResult);
 

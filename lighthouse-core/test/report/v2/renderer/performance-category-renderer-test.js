@@ -17,11 +17,12 @@ const DetailsRenderer = require('../../../../report/v2/renderer/details-renderer
 const CriticalRequestChainRenderer = require(
     '../../../../report/v2/renderer/crc-details-renderer.js');
 const CategoryRenderer = require('../../../../report/v2/renderer/category-renderer.js');
+const ReportRenderer = require('../../../../report/v2/renderer/report-renderer.js');
 const sampleResults = require('../../../results/sample_v2.json');
 
 const TEMPLATE_FILE = fs.readFileSync(__dirname + '/../../../../report/v2/templates.html', 'utf8');
 
-describe('CategoryRenderer', () => {
+describe('PerfCategoryRenderer', () => {
   let renderer;
 
   before(() => {
@@ -37,6 +38,8 @@ describe('CategoryRenderer', () => {
     const dom = new DOM(document);
     const detailsRenderer = new DetailsRenderer(dom);
     renderer = new PerformanceCategoryRenderer(dom, detailsRenderer);
+    ReportRenderer.assignAuditResultsIntoCategories(sampleResults.audits,
+      sampleResults.reportCategories);
   });
 
   after(() => {
@@ -81,7 +84,7 @@ describe('CategoryRenderer', () => {
     const categoryDOM = renderer.render(category, sampleResults.reportGroups);
 
     const hintAudits = category.audits.filter(audit => audit.group === 'perf-hint' &&
-        audit.score !== 100);
+        audit.result.score !== 100);
     const hintElements = categoryDOM.querySelectorAll('.lh-perf-hint');
     assert.equal(hintElements.length, hintAudits.length);
 
@@ -97,30 +100,52 @@ describe('CategoryRenderer', () => {
     const auditWithDebug = {
       score: 0,
       group: 'perf-hint',
-      result: {rawValue: 100, debugString: 'Yikes!', description: 'Bug'},
+      result: {
+        rawValue: 100, debugString: 'Yikes!', description: 'Bug',
+        helpText: '', score: 32,
+        details: {summary: {wastedMs: 3223}},
+      },
     };
 
-    const fakeAudits = category.audits.concat(auditWithDebug);
-    const fakeCategory = Object.assign({}, category, {audits: fakeAudits});
+    const fakeCategory = Object.assign({}, category, {audits: [auditWithDebug]});
     const categoryDOM = renderer.render(fakeCategory, sampleResults.reportGroups);
 
     const debugEl = categoryDOM.querySelector('.lh-perf-hint .lh-debug');
     assert.ok(debugEl, 'did not render debug');
   });
 
-  it('renders the performance hints with no extended info', () => {
-    const buggyAudit = {
+  it('renders errored performance hint with a debug string', () => {
+    const auditWithDebug = {
       score: 0,
       group: 'perf-hint',
-      result: {debugString: 'Yikes!', description: 'Bug'},
+      result: {
+        error: true, score: 0,
+        rawValue: 100, debugString: 'Yikes!!', description: 'Bug #2',
+
+      },
     };
 
-    const fakeAudits = category.audits.concat(buggyAudit);
-    const fakeCategory = Object.assign({}, category, {audits: fakeAudits});
+    const fakeCategory = Object.assign({}, category, {audits: [auditWithDebug]});
     const categoryDOM = renderer.render(fakeCategory, sampleResults.reportGroups);
 
     const debugEl = categoryDOM.querySelector('.lh-perf-hint .lh-debug');
     assert.ok(debugEl, 'did not render debug');
+  });
+
+  it('throws if a performance hint is missing summary.wastedMs', () => {
+    const auditWithDebug = {
+      score: 0,
+      group: 'perf-hint',
+      result: {
+        rawValue: 100, description: 'Bug',
+        helpText: '', score: 32,
+      },
+    };
+
+    const fakeCategory = Object.assign({}, category, {audits: [auditWithDebug]});
+    assert.throws(_ => {
+      renderer.render(fakeCategory, sampleResults.reportGroups);
+    });
   });
 
   it('renders the failing diagnostics', () => {
@@ -128,7 +153,7 @@ describe('CategoryRenderer', () => {
     const diagnosticSection = categoryDOM.querySelectorAll('.lh-category > .lh-audit-group')[2];
 
     const diagnosticAudits = category.audits.filter(audit => audit.group === 'perf-info' &&
-        audit.score !== 100);
+        audit.result.score !== 100);
     const diagnosticElements = diagnosticSection.querySelectorAll('.lh-audit');
     assert.equal(diagnosticElements.length, diagnosticAudits.length);
   });
@@ -137,8 +162,9 @@ describe('CategoryRenderer', () => {
     const categoryDOM = renderer.render(category, sampleResults.reportGroups);
     const passedSection = categoryDOM.querySelector('.lh-category > .lh-passed-audits');
 
-    const passedAudits = category.audits.filter(audit => audit.group !== 'perf-metric' &&
-        audit.score === 100);
+    const passedAudits = category.audits.filter(audit =>
+        audit.group && audit.group !== 'perf-metric' &&
+        audit.result.score === 100);
     const passedElements = passedSection.querySelectorAll('.lh-audit');
     assert.equal(passedElements.length, passedAudits.length);
   });
