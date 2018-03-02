@@ -86,7 +86,7 @@ describe('DetailsRenderer', () => {
     it('renders code', () => {
       const el = renderer.render({
         type: 'code',
-        text: 'code snippet',
+        value: 'code snippet',
         lineNumber: 123,
         source: 'deprecation',
         url: 'https://example.com/feature',
@@ -100,7 +100,7 @@ describe('DetailsRenderer', () => {
     it('renders thumbnails', () => {
       const el = renderer.render({
         type: 'thumbnail',
-        url: 'http://example.com/my-image.jpg',
+        value: 'http://example.com/my-image.jpg',
         mimeType: 'image/jpeg',
       });
 
@@ -144,12 +144,12 @@ describe('DetailsRenderer', () => {
           {
             a: 'value A.1',
             b: 'value A.2',
-            c: {type: 'thumbnail', url: 'http://example.com/image.jpg', mimeType: 'image/jpeg'},
+            c: {type: 'thumbnail', value: 'http://example.com/image.jpg'},
           },
           {
             a: 'value B.1',
             b: 'value B.2',
-            c: {type: 'thumbnail', url: 'unknown'},
+            c: {type: 'thumbnail', value: 'unknown'},
           },
         ],
       });
@@ -169,8 +169,8 @@ describe('DetailsRenderer', () => {
       const linkUrl = 'https://example.com/';
       const el = renderer.render({
         type: 'link',
-        label: linkText,
-        value: linkUrl,
+        text: linkText,
+        url: linkUrl,
       });
 
       assert.equal(el.localName, 'a');
@@ -185,8 +185,8 @@ describe('DetailsRenderer', () => {
       const linkUrl = 'javascript:alert(5)';
       const el = renderer.render({
         type: 'link',
-        label: linkText,
-        value: linkUrl,
+        text: linkText,
+        url: linkUrl,
       });
 
       assert.equal(el.localName, 'div');

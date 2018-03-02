@@ -1,7 +1,7 @@
 {
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3358.0 Safari/537.36",
   "lighthouseVersion": "2.9.1",
-  "generatedTime": "2018-03-02T07:26:43.163Z",
+  "generatedTime": "2018-03-02T08:26:03.985Z",
   "initialUrl": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "runWarnings": [],
@@ -341,7 +341,10 @@
       "informative": true,
       "name": "time-to-first-byte",
       "description": "Keep server response times low (TTFB)",
-      "helpText": "Time To First Byte identifies the time at which your server sends a response. [Learn more](https://developers.google.com/web/tools/chrome-devtools/network-performance/issues)."
+      "helpText": "Time To First Byte identifies the time at which your server sends a response. [Learn more](https://developers.google.com/web/tools/chrome-devtools/network-performance/issues).",
+      "summary": {
+        "wastedMs": -29.436999999999898
+      }
     },
     "first-interactive": {
       "score": 82,
@@ -3476,8 +3479,8 @@
             "vulnCount": 2,
             "highestSeverity": "Medium",
             "detectedLib": {
-              "label": "jQuery@2.1.1",
-              "value": "https://snyk.io/vuln/npm:jquery?lh@2.1.1",
+              "text": "jQuery@2.1.1",
+              "url": "https://snyk.io/vuln/npm:jquery?lh@2.1.1",
               "type": "link"
             }
           }
@@ -3505,8 +3508,8 @@
             "vulnCount": 2,
             "highestSeverity": "Medium",
             "detectedLib": {
-              "label": "jQuery@2.1.1",
-              "value": "https://snyk.io/vuln/npm:jquery?lh@2.1.1",
+              "text": "jQuery@2.1.1",
+              "url": "https://snyk.io/vuln/npm:jquery?lh@2.1.1",
               "type": "link"
             }
           }
@@ -3558,8 +3561,8 @@
             "vulnCount": 2,
             "highestSeverity": "Medium",
             "detectedLib": {
-              "label": "jQuery@2.1.1",
-              "value": "https://snyk.io/vuln/npm:jquery?lh@2.1.1",
+              "text": "jQuery@2.1.1",
+              "url": "https://snyk.io/vuln/npm:jquery?lh@2.1.1",
               "type": "link"
             }
           }
@@ -4928,6 +4931,6 @@
     }
   },
   "timing": {
-    "total": 1133
+    "total": 1079
   }
 }

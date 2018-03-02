@@ -139,7 +139,7 @@ class UnusedCSSRules extends ByteEfficiencyAudit {
     let url = stylesheetInfo.header.sourceURL;
     if (!url || url === pageUrl) {
       const contentPreview = UnusedCSSRules.determineContentPreview(stylesheetInfo.content);
-      url = {type: 'code', text: contentPreview};
+      url = {type: 'code', value: contentPreview};
     }
 
     const usage = UnusedCSSRules.computeUsage(stylesheetInfo);

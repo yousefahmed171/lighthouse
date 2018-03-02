@@ -103,7 +103,7 @@ class UnminifiedCSS extends ByteEfficiencyAudit {
     let url = stylesheet.header.sourceURL;
     if (!url || url === pageUrl) {
       const contentPreview = UnusedCSSRules.determineContentPreview(stylesheet.content);
-      url = {type: 'code', text: contentPreview};
+      url = {type: 'code', value: contentPreview};
     }
 
     const totalBytes = ByteEfficiencyAudit.estimateTransferSize(networkRecord, content.length,

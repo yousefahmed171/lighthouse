@@ -109,7 +109,7 @@ describe('Best Practices: unused css rules audit', () => {
     });
 
     it('correctly computes url', () => {
-      const expectedPreview = {type: 'code', text: 'dummy'};
+      const expectedPreview = {type: 'code', value: 'dummy'};
       assert.deepEqual(map({header: {sourceURL: ''}}).url, expectedPreview);
       assert.deepEqual(map({header: {sourceURL: 'a'}}, 'http://g.co/a').url, expectedPreview);
       assert.equal(map({header: {sourceURL: 'foobar'}}).url, 'http://g.co/foobar');

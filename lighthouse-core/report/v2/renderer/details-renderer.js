@@ -93,8 +93,9 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderTextURL(text) {
-    console.assert(!('text' in text), 'text.text has value!!');
-    const url = text.value || '';
+    console.assert(!('text' in text), 'url details should not have .text');
+    console.assert('value' in text, 'url details must have .value');
+    const url = text.value;
 
     let displayedPath;
     let displayedHost;
@@ -135,17 +136,22 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderLink(details) {
+    console.assert(('text' in details), 'link details must have .url');
+    console.assert(('text' in details), 'link details must have .text');
     const allowedProtocols = ['https:', 'http:'];
-    const url = new URL(details.value); // TODO change to .url
+    const url = new URL(details.url);
     if (!allowedProtocols.includes(url.protocol)) {
-      // Fall back to text if protocol not allowed.
-      return this._renderText(details);
+      // Fall back to just the link text if protocol not allowed.
+      return this._renderText({
+        type: 'text',
+        value: details.text,
+      });
     }
 
     const a = /** @type {!HTMLAnchorElement} */ (this._dom.createElement('a'));
     a.rel = 'noopener';
     a.target = '_blank';
-    a.textContent = details.label;
+    a.textContent = details.text;
     a.href = url.href;
 
     return a;
@@ -156,9 +162,10 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderText(text) {
+    console.assert(!('text' in text), 'text details should not have .text');
+    console.assert(('value' in text), 'text details must have .value');
     const element = this._dom.createElement('div', 'lh-text');
-    console.assert(!('text' in text), 'text.text has value!!');
-    element.textContent = text.label || text.value; // TODO only accept value
+    element.textContent = text.value;
     return element;
   }
 
@@ -169,11 +176,13 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderThumbnail(details) {
-    // TODO: use some empty details test instead? to handle data uris?
+    console.assert(!('url' in details), 'thumbnail details should not have .url');
+    console.assert(('value' in details), 'thumbnail details must have .value');
+
     const element = this._dom.createElement('img', 'lh-thumbnail');
-    element.src = details.url;
+    element.src = details.value;
+    element.title = details.value;
     element.alt = '';
-    element.title = details.url;
     return element;
   }
 
@@ -329,8 +338,10 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderCode(details) {
+    console.assert(!('text' in details), 'code details should not have .text');
+    console.assert(('value' in details), 'code details must have .value');
     const pre = this._dom.createElement('pre', 'lh-code');
-    pre.textContent = details.text; // TODO, use value instead
+    pre.textContent = details.value;
     return pre;
   }
 }
@@ -429,8 +440,8 @@ DetailsRenderer.ThumbnailDetails; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
  *     type: string,
- *     value: string,
- *     label: string
+ *     text: string,
+ *     url: string
  * }}
  */
 DetailsRenderer.LinkDetailsJSON; // eslint-disable-line no-unused-expressions

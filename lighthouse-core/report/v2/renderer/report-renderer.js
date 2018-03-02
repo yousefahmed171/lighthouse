@@ -218,6 +218,7 @@ ReportRenderer.AuditJSON; // eslint-disable-line no-unused-expressions
  *     helpText: string,
  *     scoringMode: string,
  *     extendedInfo: Object,
+ *     error: boolean,
  *     score: number,
  *     details: (!DetailsRenderer.DetailsJSON|undefined),
  *     summary: (!ReportRenderer.AuditResultSummaryJSON|undefined)

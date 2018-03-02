@@ -203,9 +203,10 @@ class CategoryRenderer {
     const auditsGroupedByGroup = /** @type {!Object<string,
         !Array<!ReportRenderer.AuditJSON>>} */ ({});
     manualAudits.forEach(audit => {
-      const group = auditsGroupedByGroup[audit.group] || [];
+      const groupId = audit.group || 'ungrouped';
+      const group = auditsGroupedByGroup[groupId] || [];
       group.push(audit);
-      auditsGroupedByGroup[audit.group] = group;
+      auditsGroupedByGroup[groupId] = group;
     });
 
     Object.keys(auditsGroupedByGroup).forEach(groupId => {
