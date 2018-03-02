@@ -59,13 +59,13 @@ class FontDisplay extends Audit {
 
           return {
             url: record.url,
-            wastedTime: Util.formatMilliseconds(wastedTime, 1),
+            wastedTime,
           };
         });
 
       const headings = [
         {key: 'url', itemType: 'url', text: 'Font URL'},
-        {key: 'wastedTime', itemType: 'text', text: 'Font download time'},
+        {key: 'wastedTime', itemType: 'ms', granularity: 1, text: 'Font download time'},
       ];
       const details = Audit.makeTableDetails(headings, results);
 

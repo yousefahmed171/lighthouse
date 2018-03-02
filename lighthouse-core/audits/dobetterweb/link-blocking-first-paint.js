@@ -69,7 +69,7 @@ class LinkBlockingFirstPaintAudit extends Audit {
           wastedMs: (item.endTime - startTime) * 1000,
         };
       })
-      .sort((a, b) => b.wastedMs.value - a.wastedMs.value);
+      .sort((a, b) => b.wastedMs - a.wastedMs);
 
     const rawDelayTime = Math.round((endTime - startTime) * 1000);
     const delayTime = Util.formatMilliseconds(rawDelayTime, 1);

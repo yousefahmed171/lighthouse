@@ -101,7 +101,7 @@ class Audit {
       throw new Error('generateAuditResult requires a rawValue');
     }
 
-    const score = typeof result.score === 'undefined' ? result.rawValue : result.score;
+    let score = typeof result.score === 'undefined' ? result.rawValue : result.score;
     let displayValue = result.displayValue;
     if (typeof displayValue === 'undefined') {
       displayValue = result.rawValue ? result.rawValue : '';
@@ -111,6 +111,15 @@ class Audit {
     if (displayValue === score) {
       displayValue = '';
     }
+
+    if (typeof score === 'boolean' || score === null) {
+      score = score ? 100 : 0;
+    }
+
+    if (!Number.isFinite(score)) {
+      throw new Error(`Invalid score: ${score}`);
+    }
+
     let auditDescription = audit.meta.description;
     if (audit.meta.failureDescription) {
       if (!score || (typeof score === 'number' && score < 100)) {
