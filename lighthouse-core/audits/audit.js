@@ -129,7 +129,6 @@ class Audit {
         auditDescription = audit.meta.failureDescription;
       }
     }
-    console.assert(!result.summary, audit.name + ' included a summary object'); // TODO remove
     return {
       score,
       displayValue: `${displayValue}`,

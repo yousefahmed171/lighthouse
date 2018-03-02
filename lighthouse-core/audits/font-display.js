@@ -6,7 +6,6 @@
 'use strict';
 
 const Audit = require('./audit');
-const Util = require('../report/v2/renderer/util');
 const WebInspector = require('../lib/web-inspector');
 const allowedFontFaceDisplays = ['block', 'fallback', 'optional', 'swap'];
 

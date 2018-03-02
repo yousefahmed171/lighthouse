@@ -6,6 +6,7 @@
 'use strict';
 
 /* globals self CriticalRequestChainRenderer Util URL */
+/* eslint-disable no-console */
 
 class DetailsRenderer {
   /**
@@ -232,7 +233,6 @@ class DetailsRenderer {
     for (const row of details.items) {
       const rowElem = this._dom.createChildOf(tbodyElem, 'tr');
       for (const heading of details.headings) {
-
         const value = /** @type {number|string|!DetailsRenderer.DetailsJSON} */ (row[heading.key]);
         if (typeof value === 'undefined') {
           continue; // e.g. no lineNumber in this row item

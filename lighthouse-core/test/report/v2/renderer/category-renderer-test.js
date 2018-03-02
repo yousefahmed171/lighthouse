@@ -103,7 +103,7 @@ describe('CategoryRenderer', () => {
   it('handles markdown in category descriptions a category', () => {
     const category = sampleResults.reportCategories[1];
     const prevDesc = category.description;
-    category.description += ' [link text](http://example.com).'
+    category.description += ' [link text](http://example.com).';
     const categoryDOM = renderer.render(category, sampleResults.reportGroups);
 
     const description = categoryDOM.querySelector('.lh-score .lh-score__description');

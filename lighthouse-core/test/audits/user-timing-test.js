@@ -12,8 +12,6 @@ const traceEvents = require('../fixtures/traces/trace-user-timings.json');
 const Runner = require('../../runner.js');
 const computedArtifacts = Runner.instantiateComputedArtifacts();
 
-const NBSP = '\xa0';
-
 function generateArtifactsWithTrace(trace) {
   return Object.assign({
     traces: {

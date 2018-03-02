@@ -103,7 +103,7 @@ describe('PerfCategoryRenderer', () => {
       result: {
         rawValue: 100, debugString: 'Yikes!', description: 'Bug',
         helpText: '', score: 32,
-        details: {summary: {wastedMs: 3223 }},
+        details: {summary: {wastedMs: 3223}},
       },
     };
 
@@ -155,14 +155,14 @@ describe('PerfCategoryRenderer', () => {
       result: {
         rawValue: 100, description: 'Bug',
         helpText: '', score: 32,
-        extendedInfo: { value: { wastedMs: 1000}}
+        extendedInfo: {value: {wastedMs: 1000}},
       },
     };
 
     const fakeCategory = Object.assign({}, category, {audits: [auditWithDebug]});
     assert.throws(_ => {
       renderer.render(fakeCategory, sampleResults.reportGroups);
-    })
+    });
   });
 
   it('renders the failing diagnostics', () => {
