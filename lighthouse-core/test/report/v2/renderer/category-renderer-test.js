@@ -46,7 +46,7 @@ describe('CategoryRenderer', () => {
   });
 
   it('renders an audit', () => {
-    const audit = sampleResults.reportCategories[0].audits[0];
+    const audit = sampleResults.reportCategories[1].audits[0];
     const auditDOM = renderer.renderAudit(audit);
 
     const title = auditDOM.querySelector('.lh-score__title');
@@ -143,8 +143,14 @@ describe('CategoryRenderer', () => {
     const a11yCategory = sampleResults.reportCategories.find(cat => cat.id === 'accessibility');
     const categoryDOM = renderer.render(a11yCategory, sampleResults.reportGroups);
     assert.ok(categoryDOM.querySelector('.lh-audit-group--notapplicable .lh-audit-group__summary'));
-    assert.equal(categoryDOM.querySelectorAll('.lh-score--informative').length, 1,
-        'score shows informative and dash icon');
+
+    const notApplicableCount = a11yCategory.audits.reduce((sum, audit) =>
+        sum += audit.result.notApplicable ? 1 : 0, 0);
+    assert.equal(
+      categoryDOM.querySelectorAll('.lh-audit-group--notapplicable .lh-score--informative').length,
+      notApplicableCount,
+      'score shows informative and dash icon'
+    );
 
     const perfCategory = sampleResults.reportCategories.find(cat => cat.id === 'performance');
     const categoryDOM2 = renderer.render(perfCategory, sampleResults.reportGroups);
@@ -200,7 +206,7 @@ describe('CategoryRenderer', () => {
 
   describe('grouping passed/failed/manual', () => {
     it('separates audits in the DOM', () => {
-      const category = sampleResults.reportCategories[0];
+      const category = sampleResults.reportCategories[1];
       const elem = renderer.render(category, sampleResults.reportGroups);
       const passedAudits = elem.querySelectorAll('.lh-passed-audits > .lh-audit');
       const failedAudits = elem.querySelectorAll('.lh-failed-audits > .lh-audit');
@@ -212,8 +218,8 @@ describe('CategoryRenderer', () => {
     });
 
     it('doesnt create a passed section if there were 0 passed', () => {
-      const category = JSON.parse(JSON.stringify(sampleResults.reportCategories[0]));
-      category.audits.forEach(audit => audit.score = 0);
+      const category = JSON.parse(JSON.stringify(sampleResults.reportCategories[1]));
+      category.audits.forEach(audit => audit.result.score = 0);
       const elem = renderer.render(category, sampleResults.reportGroups);
       const passedAudits = elem.querySelectorAll('.lh-passed-audits > .lh-audit');
       const failedAudits = elem.querySelectorAll('.lh-failed-audits > .lh-audit');
