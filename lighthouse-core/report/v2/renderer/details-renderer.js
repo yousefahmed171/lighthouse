@@ -357,6 +357,7 @@ if (typeof module !== 'undefined' && module.exports) {
  * @typedef {{
  *     type: string,
  *     value: (string|number|undefined),
+ *     summary: (DetailsRenderer.DetailsSummary|undefined),
  *     granularity: (number|undefined),
  *     displayUnit: (string|undefined)
  * }}
@@ -453,3 +454,11 @@ DetailsRenderer.LinkDetailsJSON; // eslint-disable-line no-unused-expressions
  * }}
  */
 DetailsRenderer.FilmstripDetails; // eslint-disable-line no-unused-expressions
+
+
+/** @typedef {{
+ *     wastedMs: (number|undefined),
+ *     wastedBytes: (number|undefined),
+ * }}
+ */
+DetailsRenderer.DetailsSummary; // eslint-disable-line no-unused-expressions

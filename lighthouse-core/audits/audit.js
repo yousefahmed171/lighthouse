@@ -73,14 +73,16 @@ class Audit {
   /**
    * @param {!Audit.Headings} headings
    * @param {!Array<!Object<string, string>>} results
+   * @param {!DetailsRenderer.DetailsSummary} summary
    * @return {!DetailsRenderer.DetailsJSON}
    */
-  static makeTableDetails(headings, results) {
+  static makeTableDetails(headings, results, summary) {
     if (results.length === 0) {
       return {
         type: 'table',
         headings: [],
         items: [],
+        summary,
       };
     }
 
@@ -88,6 +90,7 @@ class Audit {
       type: 'table',
       headings: headings,
       items: results,
+      summary,
     };
   }
 
@@ -126,6 +129,7 @@ class Audit {
         auditDescription = audit.meta.failureDescription;
       }
     }
+    console.assert(!result.summary, audit.name + ' included a summary object'); // TODO remove
     return {
       score,
       displayValue: `${displayValue}`,
@@ -141,7 +145,6 @@ class Audit {
       description: auditDescription,
       helpText: audit.meta.helpText,
       details: result.details,
-      summary: result.summary,
     };
   }
 }

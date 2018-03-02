@@ -46,7 +46,7 @@ describe('CategoryRenderer', () => {
   });
 
   it('renders an audit', () => {
-    const audit = sampleResults.reportCategories[1].audits[0];
+    const audit = sampleResults.reportCategories[1].audits[1];
     const auditDOM = renderer.renderAudit(audit);
 
     const title = auditDOM.querySelector('.lh-score__title');
@@ -83,7 +83,7 @@ describe('CategoryRenderer', () => {
   });
 
   it('renders a category', () => {
-    const category = sampleResults.reportCategories[0];
+    const category = sampleResults.reportCategories[1];
     const categoryDOM = renderer.render(category, sampleResults.reportGroups);
 
     const score = categoryDOM.querySelector('.lh-score');
@@ -101,7 +101,7 @@ describe('CategoryRenderer', () => {
   });
 
   it('handles markdown in category descriptions a category', () => {
-    const category = sampleResults.reportCategories[0];
+    const category = sampleResults.reportCategories[1];
     const prevDesc = category.description;
     category.description += ' [link text](http://example.com).'
     const categoryDOM = renderer.render(category, sampleResults.reportGroups);

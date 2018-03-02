@@ -87,7 +87,8 @@ class LinkBlockingFirstPaintAudit extends Audit {
       {key: 'wastedMs', itemType: 'ms', text: 'Delayed Paint By (ms)', granularity: 1},
     ];
 
-    const tableDetails = Audit.makeTableDetails(headings, results);
+    const summary = {wastedMs: rawDelayTime};
+    const details = Audit.makeTableDetails(headings, results, summary);
 
     return {
       displayValue,
@@ -98,10 +99,7 @@ class LinkBlockingFirstPaintAudit extends Audit {
           results,
         },
       },
-      details: tableDetails,
-      summary: {
-        wastedMs: rawDelayTime,
-      },
+      details,
     };
   }
 

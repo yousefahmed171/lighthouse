@@ -55,8 +55,10 @@ class TTFBMetric extends Audit {
           rawValue: ttfb,
           score: passed,
           displayValue,
-          summary: {
-            wastedMs: ttfb - TTFB_THRESHOLD,
+          details: {
+            summary: {
+              wastedMs: ttfb - TTFB_THRESHOLD,
+            },
           },
           extendedInfo: {
             value: {

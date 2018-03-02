@@ -64,7 +64,8 @@ class Redirects extends Audit {
           {key: 'url', itemType: 'text', text: 'Redirected URL'},
           {key: 'wastedMs', itemType: 'ms', text: 'Time for Redirect', granularity: 1},
         ];
-        const details = Audit.makeTableDetails(headings, pageRedirects);
+        const summary = {wastedMs: totalWastedMs};
+        const details = Audit.makeTableDetails(headings, pageRedirects, summary);
 
         return {
           // We award a passing grade if you only have 1 redirect
@@ -77,9 +78,6 @@ class Redirects extends Audit {
             },
           },
           details,
-          summary: {
-
-          },
         };
       });
   }

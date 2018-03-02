@@ -116,17 +116,17 @@ class UnusedBytes extends Audit {
       displayValue = `Potential savings of ${wastedBytes} bytes`;
     }
 
-    const tableDetails = Audit.makeTableDetails(result.headings, results);
+    const summary = {
+      wastedMs,
+      wastedBytes,
+    };
+    const details = Audit.makeTableDetails(result.headings, results, summary);
 
     return {
       debugString,
       displayValue,
       rawValue: wastedMs,
       score: UnusedBytes.scoreForWastedMs(wastedMs),
-      summary: {
-        wastedMs,
-        wastedKb,
-      },
       extendedInfo: {
         value: {
           wastedMs,
@@ -134,7 +134,7 @@ class UnusedBytes extends Audit {
           results,
         },
       },
-      details: tableDetails,
+      details,
     };
   }
 

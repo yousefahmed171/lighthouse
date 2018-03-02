@@ -103,7 +103,7 @@ describe('PerfCategoryRenderer', () => {
       result: {
         rawValue: 100, debugString: 'Yikes!', description: 'Bug',
         helpText: '', score: 32,
-        summary: {rawValue: 3223 },
+        details: {summary: {wastedMs: 3223 }},
       },
     };
 
@@ -121,6 +121,7 @@ describe('PerfCategoryRenderer', () => {
       result: {
         error: true, score: 0,
         rawValue: 100, debugString: 'Yikes!!', description: 'Bug #2',
+
       },
     };
 
@@ -131,9 +132,7 @@ describe('PerfCategoryRenderer', () => {
     assert.ok(debugEl, 'did not render debug');
   });
 
-
-  // TODO: turn back on
-  it.skip('throws if a performance hint is missing summary.rawValue', () => {
+  it('throws if a performance hint is missing summary.wastedMs', () => {
     const auditWithDebug = {
       score: 0,
       group: 'perf-hint',
@@ -144,10 +143,9 @@ describe('PerfCategoryRenderer', () => {
     };
 
     const fakeCategory = Object.assign({}, category, {audits: [auditWithDebug]});
-    const categoryDOM = renderer.render(fakeCategory, sampleResults.reportGroups);
-
-    const debugEl = categoryDOM.querySelector('.lh-perf-hint .lh-debug');
-    assert.ok(debugEl, 'did not render debug');
+    assert.throws(_ => {
+      renderer.render(fakeCategory, sampleResults.reportGroups);
+    });
   });
 
   it.skip('throws if an audit includes extendedInfo', () => {

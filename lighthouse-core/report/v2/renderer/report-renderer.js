@@ -221,19 +221,9 @@ ReportRenderer.AuditJSON; // eslint-disable-line no-unused-expressions
  *     error: boolean,
  *     score: number,
  *     details: (!DetailsRenderer.DetailsJSON|undefined),
- *     summary: (!ReportRenderer.AuditResultSummaryJSON|undefined)
  * }}
  */
 ReportRenderer.AuditResultJSON; // eslint-disable-line no-unused-expressions
-
-/**
- * @typedef {{
- *     wastedMs: (number|undefined),
- *     wastedKb: (number|undefined),
- * }}
- */
-ReportRenderer.AuditResultSummaryJSON; // eslint-disable-line no-unused-expressions
-
 
 /**
  * @typedef {{

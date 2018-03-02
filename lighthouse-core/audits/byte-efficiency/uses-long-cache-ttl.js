@@ -222,7 +222,8 @@ class CacheHeaders {
           granularity: 1},
       ];
 
-      const tableDetails = ByteEfficiencyAudit.makeTableDetails(headings, results);
+      const summary = {wastedBytes: totalWastedBytes};
+      const details = ByteEfficiencyAudit.makeTableDetails(headings, results, summary);
 
       return {
         score,
@@ -234,7 +235,7 @@ class CacheHeaders {
             queryStringCount,
           },
         },
-        details: tableDetails,
+        details,
       };
     });
   }

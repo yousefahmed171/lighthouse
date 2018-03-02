@@ -1,7 +1,7 @@
 {
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3358.0 Safari/537.36",
   "lighthouseVersion": "2.9.1",
-  "generatedTime": "2018-03-02T08:26:03.985Z",
+  "generatedTime": "2018-03-02T09:53:58.317Z",
   "initialUrl": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "runWarnings": [],
@@ -342,8 +342,10 @@
       "name": "time-to-first-byte",
       "description": "Keep server response times low (TTFB)",
       "helpText": "Time To First Byte identifies the time at which your server sends a response. [Learn more](https://developers.google.com/web/tools/chrome-devtools/network-performance/issues).",
-      "summary": {
-        "wastedMs": -29.436999999999898
+      "details": {
+        "summary": {
+          "wastedMs": -29.436999999999898
+        }
       }
     },
     "first-interactive": {
@@ -767,9 +769,11 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
-      },
-      "summary": {}
+        "items": [],
+        "summary": {
+          "wastedMs": 0
+        }
+      }
     },
     "webapp-install-banner": {
       "score": 0,
@@ -1164,7 +1168,10 @@
             "scripting": "77 ms",
             "scriptParseCompile": "2 ms"
           }
-        ]
+        ],
+        "summary": {
+          "wastedMs": 1302.3579999804497
+        }
       }
     },
     "uses-rel-preload": {
@@ -1182,10 +1189,10 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
-      },
-      "summary": {
-        "wastedMs": 0
+        "items": [],
+        "summary": {
+          "wastedMs": 0
+        }
       }
     },
     "font-display": {
@@ -2272,7 +2279,10 @@
             "totalBytes": 0,
             "wastedBytes": 0
           }
-        ]
+        ],
+        "summary": {
+          "wastedBytes": 103455
+        }
       }
     },
     "total-byte-weight": {
@@ -2434,11 +2444,11 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
-      },
-      "summary": {
-        "wastedMs": 0,
-        "wastedKb": 0
+        "items": [],
+        "summary": {
+          "wastedMs": 0,
+          "wastedBytes": 0
+        }
       }
     },
     "unminified-css": {
@@ -2460,11 +2470,11 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
-      },
-      "summary": {
-        "wastedMs": 0,
-        "wastedKb": 0
+        "items": [],
+        "summary": {
+          "wastedMs": 0,
+          "wastedBytes": 0
+        }
       }
     },
     "unminified-javascript": {
@@ -2524,11 +2534,11 @@
             "wastedMs": 174.32104767345731,
             "totalMs": 409.9376550703614
           }
-        ]
-      },
-      "summary": {
-        "wastedMs": 170,
-        "wastedKb": 30
+        ],
+        "summary": {
+          "wastedMs": 170,
+          "wastedBytes": 30470
+        }
       }
     },
     "unused-css-rules": {
@@ -2550,11 +2560,11 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
-      },
-      "summary": {
-        "wastedMs": 0,
-        "wastedKb": 0
+        "items": [],
+        "summary": {
+          "wastedMs": 0,
+          "wastedBytes": 0
+        }
       }
     },
     "uses-webp-images": {
@@ -2621,11 +2631,11 @@
             "wastedMs": 48.777855348339266,
             "totalMs": 140.8527795773062
           }
-        ]
-      },
-      "summary": {
-        "wastedMs": 50,
-        "wastedKb": 8
+        ],
+        "summary": {
+          "wastedMs": 50,
+          "wastedBytes": 8526
+        }
       }
     },
     "uses-optimized-images": {
@@ -2647,11 +2657,11 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
-      },
-      "summary": {
-        "wastedMs": 0,
-        "wastedKb": 0
+        "items": [],
+        "summary": {
+          "wastedMs": 0,
+          "wastedBytes": 0
+        }
       }
     },
     "uses-request-compression": {
@@ -2723,11 +2733,11 @@
             "wastedMs": 48.29728534490735,
             "totalMs": 71.62209372576345
           }
-        ]
-      },
-      "summary": {
-        "wastedMs": 370,
-        "wastedKb": 63
+        ],
+        "summary": {
+          "wastedMs": 370,
+          "wastedBytes": 64646
+        }
       }
     },
     "uses-responsive-images": {
@@ -2749,11 +2759,11 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
-      },
-      "summary": {
-        "wastedMs": 0,
-        "wastedKb": 0
+        "items": [],
+        "summary": {
+          "wastedMs": 0,
+          "wastedBytes": 0
+        }
       }
     },
     "appcache-manifest": {
@@ -3110,10 +3120,10 @@
             "totalBytes": 821,
             "wastedMs": 569.1630000073928
           }
-        ]
-      },
-      "summary": {
-        "wastedMs": 2214
+        ],
+        "summary": {
+          "wastedMs": 2214
+        }
       }
     },
     "no-document-write": {
@@ -3566,7 +3576,8 @@
               "type": "link"
             }
           }
-        ]
+        ],
+        "summary": {}
       }
     },
     "no-websql": {
@@ -3747,10 +3758,10 @@
             "totalBytes": 1703,
             "wastedMs": 1148.00399998785
           }
-        ]
-      },
-      "summary": {
-        "wastedMs": 1148
+        ],
+        "summary": {
+          "wastedMs": 1148
+        }
       }
     },
     "uses-http2": {
@@ -4176,7 +4187,8 @@
       "details": {
         "type": "table",
         "headings": [],
-        "items": []
+        "items": [],
+        "summary": {}
       }
     },
     "is-crawlable": {
@@ -4931,6 +4943,6 @@
     }
   },
   "timing": {
-    "total": 1079
+    "total": 1113
   }
 }
