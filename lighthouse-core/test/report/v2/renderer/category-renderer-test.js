@@ -17,6 +17,7 @@ const DetailsRenderer = require('../../../../report/v2/renderer/details-renderer
 const CriticalRequestChainRenderer = require(
     '../../../../report/v2/renderer/crc-details-renderer.js');
 const CategoryRenderer = require('../../../../report/v2/renderer/category-renderer.js');
+const ReportRenderer = require('../../../../report/v2/renderer/report-renderer.js');
 const sampleResults = require('../../../results/sample_v2.json');
 
 const TEMPLATE_FILE = fs.readFileSync(__dirname + '/../../../../report/v2/templates.html', 'utf8');
@@ -33,6 +34,9 @@ describe('CategoryRenderer', () => {
     const dom = new DOM(document);
     const detailsRenderer = new DetailsRenderer(dom);
     renderer = new CategoryRenderer(dom, detailsRenderer);
+
+    ReportRenderer.assignAuditResultsIntoCategories(sampleResults.audits,
+      sampleResults.reportCategories);
   });
 
   after(() => {
@@ -85,17 +89,26 @@ describe('CategoryRenderer', () => {
     const score = categoryDOM.querySelector('.lh-score');
     const value = categoryDOM.querySelector('.lh-score  > .lh-score__value');
     const title = score.querySelector('.lh-score__title');
-    const description = score.querySelector('.lh-score__description');
 
     assert.deepEqual(score, score.firstElementChild, 'first child is a score');
     assert.ok(value.classList.contains('lh-score__value--numeric'),
               'category score is numeric');
     assert.equal(value.textContent, Math.round(category.score), 'category score is rounded');
     assert.equal(title.textContent, category.name, 'title is set');
-    assert.ok(description.querySelector('a'), 'description contains converted markdown links');
 
     const audits = categoryDOM.querySelectorAll('.lh-audit');
     assert.equal(audits.length, category.audits.length, 'renders correct number of audits');
+  });
+
+  it('handles markdown in category descriptions a category', () => {
+    const category = sampleResults.reportCategories[0];
+    const prevDesc = category.description;
+    category.description += ' [link text](http://example.com).'
+    const categoryDOM = renderer.render(category, sampleResults.reportGroups);
+
+    const description = categoryDOM.querySelector('.lh-score .lh-score__description');
+    assert.ok(description.querySelector('a'), 'description contains converted markdown links');
+    category.description = prevDesc;
   });
 
   it('renders audits with debugString as failed', () => {

@@ -30,7 +30,6 @@ class DetailsRenderer {
    * @return {!Node}
    */
   render(details) {
-    console.log('typeof details.value', typeof details.value)
     switch (details.type) {
       case 'text':
         return this._renderText(/** @type {!DetailsRenderer.StringDetailsJSON} */ (details));
@@ -231,6 +230,9 @@ class DetailsRenderer {
       for (const heading of details.headings) {
 
         const value = /** @type {number|string|!DetailsRenderer.DetailsJSON} */ (row[heading.key]);
+        if (typeof value === 'undefined') {
+          continue; // e.g. no lineNumber in this row item
+        }
         // handle nested types like code blocks in table rows.
         if (value.type) {
           const valueAsDetails = /** @type {!DetailsRenderer.DetailsJSON} */ (value);

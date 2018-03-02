@@ -35,7 +35,7 @@ describe('DetailsRenderer', () => {
 
   describe('render', () => {
     it('renders text', () => {
-      const el = renderer.render({type: 'text', text: 'My text content'});
+      const el = renderer.render({type: 'text', value: 'My text content'});
       assert.equal(el.textContent, 'My text content');
       assert.ok(el.classList.contains('lh-text'), 'adds classes');
     });
@@ -43,10 +43,10 @@ describe('DetailsRenderer', () => {
     it('renders lists with headers', () => {
       const el = renderer.render({
         type: 'list',
-        header: {type: 'text', text: 'My Header'},
+        header: {type: 'text', value: 'My Header'},
         items: [
-          {type: 'text', text: 'content 1'},
-          {type: 'text', text: 'content 2'},
+          {type: 'text', value: 'content 1'},
+          {type: 'text', value: 'content 2'},
         ],
       });
 
@@ -61,9 +61,9 @@ describe('DetailsRenderer', () => {
       const el = renderer.render({
         type: 'list',
         items: [
-          {type: 'text', text: 'content 1'},
-          {type: 'text', text: 'content 2'},
-          {type: 'text', text: 'content 3'},
+          {type: 'text', value: 'content 1'},
+          {type: 'text', value: 'content 2'},
+          {type: 'text', value: 'content 3'},
         ],
       });
 
@@ -76,7 +76,7 @@ describe('DetailsRenderer', () => {
 
     it('renders cards', () => {
       const list = {
-        header: {type: 'text', text: 'View details'},
+        header: {type: 'text', value: 'View details'},
         items: [
           {title: 'Total DOM Nodes', value: 3500, target: '1,500 nodes'},
           {title: 'DOM Depth', value: 10, snippet: 'snippet'},
@@ -154,21 +154,20 @@ describe('DetailsRenderer', () => {
     it('renders tables', () => {
       const el = renderer.render({
         type: 'table',
-        header: 'View Items',
-        itemHeaders: [
-          {type: 'text', text: 'First'},
-          {type: 'text', text: 'Second'},
-          {type: 'text', text: 'Preview', itemType: 'thumbnail'},
+        headings: [
+          {type: 'text', value: 'First'},
+          {type: 'text', value: 'Second'},
+          {type: 'text', value: 'Preview', itemType: 'thumbnail'},
         ],
         items: [
           [
-            {type: 'text', text: 'value A.1'},
-            {type: 'text', text: 'value A.2'},
+            {type: 'text', value: 'value A.1'},
+            {type: 'text', value: 'value A.2'},
             {type: 'thumbnail', url: 'http://example.com/image.jpg', mimeType: 'image/jpeg'},
           ],
           [
-            {type: 'text', text: 'value B.1'},
-            {type: 'text', text: 'value B.2'},
+            {type: 'text', value: 'value B.1'},
+            {type: 'text', value: 'value B.2'},
             {type: 'thumbnail', url: 'unknown'},
           ],
         ],

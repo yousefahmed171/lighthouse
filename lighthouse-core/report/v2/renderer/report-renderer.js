@@ -155,28 +155,38 @@ class ReportRenderer {
     perfCategoryRenderer.setTemplateContext(this._templateContext);
 
     const categories = reportSection.appendChild(this._dom.createElement('div', 'lh-categories'));
+
+    ReportRenderer.assignAuditResultsIntoCategories(report.audits, report.reportCategories);
+
     for (const category of report.reportCategories) {
       if (scoreHeader) {
         scoreHeader.appendChild(categoryRenderer.renderScoreGauge(category));
       }
 
       let renderer = categoryRenderer;
-
       if (category.id === 'performance') {
         renderer = perfCategoryRenderer;
       }
-
-      // smush auditDfn with weight/group into the audit result
-      category.audits.forEach(auditMeta => {
-        const result = report.audits[auditMeta.id];
-        auditMeta.result = result;
-      });
       categories.appendChild(renderer.render(category, report.reportGroups));
     }
 
     reportSection.appendChild(this._renderReportFooter(report));
 
     return container;
+  }
+
+  /**
+   * Place the AuditResult into the auditDfn (which has just weight & group)
+   * @param {!Object<string, !ReportRenderer.AuditResultJSON>} audits
+   * @param {!Array<!ReportRenderer.CategoryJSON>} reportCategories
+   */
+  static assignAuditResultsIntoCategories(audits, reportCategories) {
+    for (const category of reportCategories) {
+      category.audits.forEach(auditMeta => {
+        const result = audits[auditMeta.id];
+        auditMeta.result = result;
+      });
+    }
   }
 }
 
