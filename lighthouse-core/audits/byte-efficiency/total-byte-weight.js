@@ -23,9 +23,9 @@ class TotalByteWeight extends ByteEfficiencyAudit {
       description: 'Avoids enormous network payloads',
       failureDescription: 'Has enormous network payloads',
       helpText:
-          'Large network payloads cost users real money and are highly correlated with ' +
-          'long load times. [Learn ' +
-          'more](https://developers.google.com/web/tools/lighthouse/audits/network-payloads).',
+        'Large network payloads cost users real money and are highly correlated with ' +
+        'long load times. [Learn ' +
+        'more](https://developers.google.com/web/tools/lighthouse/audits/network-payloads).',
       scoringMode: ByteEfficiencyAudit.SCORING_MODES.NUMERIC,
       requiredArtifacts: ['devtoolsLogs'],
     };
@@ -51,7 +51,6 @@ class TotalByteWeight extends ByteEfficiencyAudit {
         const result = {
           url: record.url,
           totalBytes: record.transferSize,
-          totalBytes: ByteEfficiencyAudit.bytesDetails(record.transferSize),
           totalMs: ByteEfficiencyAudit.bytesToMs(record.transferSize, networkThroughput),
         };
 
@@ -60,7 +59,6 @@ class TotalByteWeight extends ByteEfficiencyAudit {
       });
       const totalCompletedRequests = results.length;
       results = results.sort((itemA, itemB) => itemB.totalBytes - itemA.totalBytes).slice(0, 10);
-
 
       // Use the CDF of a log-normal distribution for scoring.
       //   <= 1600KB: score≈100
@@ -74,7 +72,13 @@ class TotalByteWeight extends ByteEfficiencyAudit {
 
       const headings = [
         {key: 'url', itemType: 'url', text: 'URL'},
-        {key: 'totalBytes', itemType: 'bytes', displayUnit: 'kb', granularity: 1, text: 'Total Size'},
+        {
+          key: 'totalBytes',
+          itemType: 'bytes',
+          displayUnit: 'kb',
+          granularity: 1,
+          text: 'Total Size',
+        },
         {key: 'totalMs', itemType: 'ms', text: 'Transfer Time'},
       ];
 

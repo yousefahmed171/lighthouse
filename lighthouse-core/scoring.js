@@ -13,16 +13,19 @@ class ReportScoring {
    * @return {number}
    */
   static arithmeticMean(items) {
-    const results = items.reduce((result, item) => {
-      const score = Number(item.score) || 0;
-      const weight = Number(item.weight) || 0;
-      return {
-        weight: result.weight + weight,
-        sum: result.sum + score * weight,
-      };
-    }, {weight: 0, sum: 0});
+    const results = items.reduce(
+      (result, item) => {
+        const score = Number(item.score) || 0;
+        const weight = Number(item.weight) || 0;
+        return {
+          weight: result.weight + weight,
+          sum: result.sum + score * weight,
+        };
+      },
+      {weight: 0, sum: 0}
+    );
 
-    return (results.sum / results.weight) || 0;
+    return results.sum / results.weight || 0;
   }
 
   /**
@@ -56,7 +59,10 @@ class ReportScoring {
         result.score = auditScore;
       });
 
-      const scores = category.audits.map(audit => ({score: resultsByAuditId[audit.id].score, weight: audit.weight}));
+      const scores = category.audits.map(audit => ({
+        score: resultsByAuditId[audit.id].score,
+        weight: audit.weight,
+      }));
       const categoryScore = ReportScoring.arithmeticMean(scores);
       // mutate config.categories[].score
       category.score = categoryScore;
