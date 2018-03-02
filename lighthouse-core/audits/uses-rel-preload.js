@@ -102,6 +102,9 @@ class UsesRelPreloadAudit extends Audit {
           value: results,
         },
         details,
+        summary: {
+          wastedMs: maxWasted,
+        },
       };
     });
   }

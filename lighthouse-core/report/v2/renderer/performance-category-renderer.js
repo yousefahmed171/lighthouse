@@ -62,7 +62,14 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
 
     this.dom.createChildOf(summary, 'div', 'lh-toggle-arrow', {title: 'See resources'});
 
+    if (audit.result.error) {
+      const debugStrEl = this.dom.createChildOf(summary, 'div', 'lh-debug');
+      debugStrEl.textContent = audit.result.debugString || 'Audit error';
+      return element;
+    }
+
     if (!summaryInfo || typeof audit.result.rawValue !== 'number') {
+      // TODO, throw instead
       console.error('Expected audit `summary` and numeric rawValue for perf-hint audit');
       return element;
     }

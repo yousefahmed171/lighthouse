@@ -95,11 +95,13 @@ class LinkBlockingFirstPaintAudit extends Audit {
       rawValue: rawDelayTime,
       extendedInfo: {
         value: {
-          wastedMs: delayTime,
           results,
         },
       },
       details: tableDetails,
+      summary: {
+        wastedMs: rawDelayTime,
+      },
     };
   }
 

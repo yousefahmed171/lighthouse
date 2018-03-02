@@ -176,10 +176,10 @@ describe('CategoryRenderer', () => {
     });
 
     // TODO waiting for decision regarding this header
-    xit('renders the failed audits grouped by group', () => {
+    it.skip('renders the failed audits grouped by group', () => {
       const categoryDOM = renderer.render(category, sampleResults.reportGroups);
       const failedAudits = category.audits.filter(audit => {
-        return audit.score !== 100 && !audit.result.notApplicable;
+        return audit.result.score !== 100 && !audit.result.notApplicable;
       });
       const failedAuditTags = new Set(failedAudits.map(audit => audit.group));
 
@@ -189,8 +189,8 @@ describe('CategoryRenderer', () => {
 
     it('renders the passed audits grouped by group', () => {
       const categoryDOM = renderer.render(category, sampleResults.reportGroups);
-
-      const passedAudits = category.audits.filter(audit => audit.score === 100);
+      const passedAudits = category.audits.filter(audit =>
+          !audit.result.notApplicable && audit.result.score === 100);
       const passedAuditTags = new Set(passedAudits.map(audit => audit.group));
 
       const passedAuditGroups = categoryDOM.querySelectorAll('.lh-passed-audits .lh-audit-group');

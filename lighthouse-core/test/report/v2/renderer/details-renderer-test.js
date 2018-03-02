@@ -40,23 +40,6 @@ describe('DetailsRenderer', () => {
       assert.ok(el.classList.contains('lh-text'), 'adds classes');
     });
 
-    it('renders lists with headers', () => {
-      const el = renderer.render({
-        type: 'list',
-        header: {type: 'text', value: 'My Header'},
-        items: [
-          {type: 'text', value: 'content 1'},
-          {type: 'text', value: 'content 2'},
-        ],
-      });
-
-      const header = el.querySelector('.lh-list__header');
-      assert.equal(header.textContent, 'My Header', 'did not render header');
-
-      const items = el.querySelector('.lh-list__items');
-      assert.equal(items.children.length, 2, 'did not render children');
-    });
-
     it('renders lists without headers', () => {
       const el = renderer.render({
         type: 'list',
@@ -85,8 +68,6 @@ describe('DetailsRenderer', () => {
       };
 
       const details = renderer._renderCards(list);
-      assert.ok(details.classList.contains('lh-details'));
-      assert.equal(details.querySelector('summary').textContent, 'View details');
 
       const cards = details.querySelectorAll('.lh-scorecards > .lh-scorecard');
       assert.ok(cards.length, list.items.length, `renders ${list.items.length} cards`);
@@ -155,21 +136,21 @@ describe('DetailsRenderer', () => {
       const el = renderer.render({
         type: 'table',
         headings: [
-          {type: 'text', value: 'First'},
-          {type: 'text', value: 'Second'},
-          {type: 'text', value: 'Preview', itemType: 'thumbnail'},
+          {text: 'First', key: 'a', itemType: 'text'},
+          {text: 'Second', key: 'b', itemType: 'text'},
+          {text: 'Preview', key: 'c', itemType: 'thumbnail'},
         ],
         items: [
-          [
-            {type: 'text', value: 'value A.1'},
-            {type: 'text', value: 'value A.2'},
-            {type: 'thumbnail', url: 'http://example.com/image.jpg', mimeType: 'image/jpeg'},
-          ],
-          [
-            {type: 'text', value: 'value B.1'},
-            {type: 'text', value: 'value B.2'},
-            {type: 'thumbnail', url: 'unknown'},
-          ],
+          {
+            a: 'value A.1',
+            b: 'value A.2',
+            c: {type: 'thumbnail', url: 'http://example.com/image.jpg', mimeType: 'image/jpeg'},
+          },
+          {
+            a: 'value B.1',
+            b: 'value B.2',
+            c: {type: 'thumbnail', url: 'unknown'},
+          },
         ],
       });
 

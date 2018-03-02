@@ -136,7 +136,7 @@ class DetailsRenderer {
    */
   _renderLink(details) {
     const allowedProtocols = ['https:', 'http:'];
-    const url = new URL(details.value);
+    const url = new URL(details.value); // TODO change to .url
     if (!allowedProtocols.includes(url.protocol)) {
       // Fall back to text if protocol not allowed.
       return this._renderText(details);
@@ -158,7 +158,7 @@ class DetailsRenderer {
   _renderText(text) {
     const element = this._dom.createElement('div', 'lh-text');
     console.assert(!('text' in text), 'text.text has value!!');
-    element.textContent = text.value;
+    element.textContent = text.label || text.value; // TODO only accept value
     return element;
   }
 
@@ -171,9 +171,9 @@ class DetailsRenderer {
   _renderThumbnail(details) {
     // TODO: use some empty details test instead? to handle data uris?
     const element = this._dom.createElement('img', 'lh-thumbnail');
-    element.src = details.value;
+    element.src = details.url;
     element.alt = '';
-    element.title = details.value;
+    element.title = details.url;
     return element;
   }
 
@@ -186,11 +186,6 @@ class DetailsRenderer {
 
     const element = this._dom.createElement('details', 'lh-details');
     element.open = true;
-    if (list.header) {
-      const summary = this._dom.createElement('summary', 'lh-list__header');
-      summary.textContent = list.header.text;
-      element.appendChild(summary);
-    }
 
     const itemsElem = this._dom.createChildOf(element, 'div', 'lh-list__items');
     for (const item of list.items) {
