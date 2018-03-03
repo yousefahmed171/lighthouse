@@ -123,7 +123,8 @@ class Audit {
       throw new Error(`Invalid score: ${score}`);
     }
 
-    const scoreDisplayMode = result.scoreDisplayMode || audit.meta.scoreDisplayMode || Audit.SCORING_MODES.BINARY;
+    const scoreDisplayMode = result.scoreDisplayMode || audit.meta.scoreDisplayMode ||
+        Audit.SCORING_MODES.BINARY;
 
     let auditDescription = audit.meta.description;
     if (audit.meta.failureDescription) {

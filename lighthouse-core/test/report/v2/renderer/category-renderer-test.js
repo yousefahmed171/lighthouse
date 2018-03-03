@@ -71,7 +71,8 @@ describe('CategoryRenderer', () => {
     assert.ok(audit1.querySelector('.lh-debug'));
 
     const audit2 = renderer.renderAudit({
-      scoreDisplayMode: 'binary', score: 0, result: {helpText: 'help text', description: 'Audit title'},
+      scoreDisplayMode: 'binary', score: 0,
+      result: {helpText: 'help text', description: 'Audit title'},
     });
     assert.ok(!audit2.querySelector('.lh-debug'));
   });
