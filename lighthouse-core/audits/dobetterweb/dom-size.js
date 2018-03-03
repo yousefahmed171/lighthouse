@@ -42,7 +42,7 @@ class DOMSize extends Audit {
         'children/parent element. A large DOM can increase memory usage, cause longer ' +
         '[style calculations](https://developers.google.com/web/fundamentals/performance/rendering/reduce-the-scope-and-complexity-of-style-calculations), ' +
         'and produce costly [layout reflows](https://developers.google.com/speed/articles/reflow). [Learn more](https://developers.google.com/web/fundamentals/performance/rendering/).',
-      scoringMode: Audit.SCORING_MODES.NUMERIC,
+      scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
       requiredArtifacts: ['DOMStats'],
     };
   }

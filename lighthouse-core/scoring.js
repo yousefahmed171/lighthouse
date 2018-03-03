@@ -6,6 +6,13 @@
 
 'use strict';
 
+/**
+ * Clamp figure to 2 decimal places
+ * @param {number} val
+ * @return {number}
+ */
+const clamp2decimals = val => Math.round(val * 100) / 100;
+
 class ReportScoring {
   /**
    * Computes the weighted-average of the score of the list of items.
@@ -25,7 +32,7 @@ class ReportScoring {
       {weight: 0, sum: 0}
     );
 
-    return results.sum / results.weight || 0;
+    return clamp2decimals(results.sum / results.weight || 0);
   }
 
   /**
@@ -41,22 +48,20 @@ class ReportScoring {
 
       category.audits.forEach(audit => {
         const result = resultsByAuditId[audit.id];
-        // Cast to number to catch `null` and undefined when audits error
-        let auditScore = Number(result.score) || 0;
-        if (typeof result.score === 'boolean') {
-          auditScore = result.score ? 100 : 0;
-        }
         // If a result was not applicable, meaning its checks did not run against anything on
         // the page, force it's weight to 0. It will not count during the arithmeticMean() but
         // will still be included in the final report json and displayed in the report as
         // "Not Applicable".
         if (result.notApplicable) {
-          auditScore = 100;
+          result.score = 1;
           audit.weight = 0;
           result.informative = true;
         }
+        result.score = clamp2decimals(result.score);
 
-        result.score = auditScore;
+        if (!Number.isFinite(result.score)) {
+          throw new Error(`Invalid score: ${result.score}`);
+        }
       });
 
       const scores = category.audits.map(audit => ({

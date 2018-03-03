@@ -25,7 +25,7 @@ class FirstMeaningfulPaint extends Audit {
       description: 'First meaningful paint',
       helpText: 'First meaningful paint measures when the primary content of a page is visible. ' +
           '[Learn more](https://developers.google.com/web/tools/lighthouse/audits/first-meaningful-paint).',
-      scoringMode: Audit.SCORING_MODES.NUMERIC,
+      scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
       requiredArtifacts: ['traces'],
     };
   }

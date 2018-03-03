@@ -31,7 +31,7 @@ class CacheHeaders extends Audit {
       helpText:
         'A long cache lifetime can speed up repeat visits to your page. ' +
         '[Learn more](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#cache-control).',
-      scoringMode: Audit.SCORING_MODES.NUMERIC,
+      scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
       requiredArtifacts: ['devtoolsLogs'],
     };
   }

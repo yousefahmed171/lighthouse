@@ -24,7 +24,7 @@ class SpeedIndexMetric extends Audit {
       description: 'Perceptual Speed Index',
       helpText: 'Speed Index shows how quickly the contents of a page are visibly populated. ' +
           '[Learn more](https://developers.google.com/web/tools/lighthouse/audits/speed-index).',
-      scoringMode: Audit.SCORING_MODES.NUMERIC,
+      scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
       requiredArtifacts: ['traces'],
     };
   }

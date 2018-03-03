@@ -18,7 +18,7 @@ class Redirects extends Audit {
       name: 'redirects',
       description: 'Avoids page redirects',
       failureDescription: 'Has multiple page redirects',
-      scoringMode: Audit.SCORING_MODES.NUMERIC,
+      scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
       helpText: 'Redirects introduce additional delays before the page can be loaded. [Learn more](https://developers.google.com/speed/docs/insights/AvoidRedirects).',
       requiredArtifacts: ['URL', 'devtoolsLogs'],
     };
@@ -70,7 +70,7 @@ class Redirects extends Audit {
 
         return {
           // We award a passing grade if you only have 1 redirect
-          score: redirectRequests.length <= 2 ? 100 : UnusedBytes.scoreForWastedMs(totalWastedMs),
+          score: redirectRequests.length <= 2 ? 1 : UnusedBytes.scoreForWastedMs(totalWastedMs),
           rawValue: totalWastedMs,
           displayValue: Util.formatMilliseconds(totalWastedMs, 1),
           extendedInfo: {

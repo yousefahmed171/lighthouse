@@ -61,7 +61,7 @@ class NetworkRequests extends Audit {
       const tableDetails = Audit.makeTableDetails(headings, results);
 
       return {
-        score: 100,
+        score: 1.00,
         rawValue: records.length,
         extendedInfo: {value: results},
         details: tableDetails,

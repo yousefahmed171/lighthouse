@@ -51,10 +51,10 @@ class Audit {
       diminishingReturnsValue
     );
 
-    let score = 100 * distribution.computeComplementaryPercentile(measuredValue);
-    score = Math.min(100, score);
+    let score = distribution.computeComplementaryPercentile(measuredValue);
+    score = Math.min(1, score);
     score = Math.max(0, score);
-    return Math.round(score);
+    return Math.round(score * 100) / 100;
   }
 
   /**
@@ -104,7 +104,7 @@ class Audit {
       throw new Error('generateAuditResult requires a rawValue');
     }
 
-    const score = typeof result.score === 'undefined' ? result.rawValue : result.score;
+    let score = typeof result.score === 'undefined' ? result.rawValue : result.score;
     let displayValue = result.displayValue;
     if (typeof displayValue === 'undefined') {
       displayValue = result.rawValue ? result.rawValue : '';
@@ -115,18 +115,15 @@ class Audit {
       displayValue = '';
     }
 
-    // TODO: restore after initial 3.0 branching
-    // if (typeof score === 'boolean' || score === null) {
-    //   score = score ? 100 : 0;
-    // }
+    if (typeof score === 'boolean' || score === null) {
+      score = score ? 1 : 0;
+    }
 
-    // if (!Number.isFinite(score)) {
-    //   throw new Error(`Invalid score: ${score}`);
-    // }
+    if (!Number.isFinite(score)) {
+      throw new Error(`Invalid score: ${score}`);
+    }
 
-    // TODO, don't consider an auditResult's scoringMode (currently applied to all ByteEfficiency)
-    const scoringMode = result.scoringMode || audit.meta.scoringMode || Audit.SCORING_MODES.BINARY;
-    delete result.scoringMode;
+    const scoreDisplayMode = result.scoreDisplayMode || audit.meta.scoreDisplayMode || Audit.SCORING_MODES.BINARY;
 
     let auditDescription = audit.meta.description;
     if (audit.meta.failureDescription) {
@@ -142,7 +139,7 @@ class Audit {
       error: result.error,
       debugString: result.debugString,
       extendedInfo: result.extendedInfo,
-      scoringMode,
+      scoreDisplayMode,
       informative: audit.meta.informative,
       manual: audit.meta.manual,
       notApplicable: result.notApplicable,
