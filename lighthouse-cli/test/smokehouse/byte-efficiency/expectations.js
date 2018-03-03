@@ -14,7 +14,7 @@ module.exports = [
     url: 'http://localhost:10200/byte-efficiency/tester.html',
     audits: {
       'unminified-css': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             wastedKb: 17,
@@ -25,7 +25,7 @@ module.exports = [
         },
       },
       'unminified-javascript': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             wastedKb: 14,
@@ -36,7 +36,7 @@ module.exports = [
         },
       },
       'unused-css-rules': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             wastedKb: 39,
@@ -47,7 +47,7 @@ module.exports = [
         },
       },
       'unused-javascript': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             // TODO(phulce): Update this to =32 once block-level coverage tracking hits stable
@@ -59,7 +59,7 @@ module.exports = [
         },
       },
       'offscreen-images': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             results: [
@@ -77,7 +77,7 @@ module.exports = [
         },
       },
       'uses-webp-images': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             results: {
@@ -87,7 +87,7 @@ module.exports = [
         },
       },
       'uses-optimized-images': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             results: {
@@ -97,7 +97,7 @@ module.exports = [
         },
       },
       'uses-responsive-images': {
-        score: '<100',
+        score: '<1.00',
         extendedInfo: {
           value: {
             results: {
