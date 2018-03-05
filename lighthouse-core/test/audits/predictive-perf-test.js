@@ -39,6 +39,9 @@ describe('Performance: predictive performance audit', () => {
       assert.equal(valueOf('roughEstimateOfTTCI'), 5308);
       assert.equal(valueOf('optimisticTTCI'), 2451);
       assert.equal(valueOf('pessimisticTTCI'), 2752);
+      assert.equal(valueOf('roughEstimateOfSI'), 3227);
+      assert.equal(valueOf('speedIndexLayouts'), 1330);
+      assert.equal(valueOf('speedIndexLayoutsAndPaints'), 1379);
     });
   });
 });

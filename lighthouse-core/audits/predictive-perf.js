@@ -36,6 +36,14 @@ const COEFFICIENTS = {
     optimistic: 0.97,
     pessimistic: 0.49,
   },
+  SI: {
+    intercept: 780,
+    FCP: 0.32,
+    FMP: -0.29,
+    TTCI: 0.44,
+    layouts: 0.63,
+    layoutsAndPaints: -0.4,
+  },
 };
 
 class PredictivePerf extends Audit {
@@ -238,6 +246,46 @@ class PredictivePerf extends Audit {
   }
 
   /**
+   * @param {!Map<!Node, !NodeTiming>} nodeTiming
+   * @param {number} minimumRenderTime
+   * @return {{speedIndexLayouts: number, speedIndexLayoutsAndPaints: number}}
+   */
+  static predictSpeedIndex(nodeTiming, minimumRenderTime) {
+    const layoutWeights = [];
+    const layoutAndPaintWeights = [];
+
+    for (const [node, timing] of nodeTiming.entries()) {
+      if (node.type === Node.TYPES.NETWORK) continue;
+
+      const anyPaintEvent = node.childEvents.find(x => /Paint/i.test(x.name));
+      const paintImageEvent = node.childEvents.find(x => /PaintImage/i.test(x.name));
+      const anyLayoutEvent = node.childEvents.find(x => /Layout/i.test(x.name));
+      const layoutEvent = node.childEvents.find(x => x.name === 'Layout');
+
+      const timingWeight = Math.max(Math.log2(timing.endTime - timing.startTime), 0);
+      if (layoutEvent) layoutWeights.push({time: timing.endTime, weight: timingWeight});
+
+      let importanceWeight = 0;
+      if (anyPaintEvent) importanceWeight += 1;
+      if (paintImageEvent) importanceWeight += 2;
+      if (anyLayoutEvent) importanceWeight += 3;
+      if (layoutEvent) importanceWeight += 10;
+
+      layoutAndPaintWeights.push({time: timing.endTime, weight: importanceWeight * timingWeight});
+    }
+
+    const sum = values => values.reduce((x, y) => x + y, 0);
+    const weightedAvg = values =>
+      sum(values.map(x => x.weight * Math.max(x.time, minimumRenderTime))) /
+      sum(values.map(x => x.weight));
+
+    return {
+      speedIndexLayouts: weightedAvg(layoutWeights),
+      speedIndexLayoutsAndPaints: weightedAvg(layoutAndPaintWeights),
+    };
+  }
+
+  /**
    * @param {!Artifacts} artifacts
    * @return {!AuditResult}
    */
@@ -257,6 +305,7 @@ class PredictivePerf extends Audit {
         pessimisticTTCI: PredictivePerf.getPessimisticTTCIGraph(graph, traceOfTab),
       };
 
+      let ttiNodeTiming;
       const values = {};
       const options = PredictivePerf.computeRTTAndServerResponseTime(graph);
       Object.keys(graphs).forEach(key => {
@@ -278,10 +327,13 @@ class PredictivePerf extends Audit {
             values[key] = Math.max(values.optimisticFMP, lastLongTaskEnd);
             break;
           case 'pessimisticTTCI':
+            ttiNodeTiming = estimate.nodeTiming;
             values[key] = Math.max(values.pessimisticFMP, lastLongTaskEnd);
             break;
         }
       });
+
+      Object.assign(values, PredictivePerf.predictSpeedIndex(ttiNodeTiming, values.pessimisticFCP));
 
       values.roughEstimateOfFCP =
         COEFFICIENTS.FCP.intercept +
@@ -295,11 +347,19 @@ class PredictivePerf extends Audit {
         COEFFICIENTS.TTCI.intercept +
         COEFFICIENTS.TTCI.optimistic * values.optimisticTTCI +
         COEFFICIENTS.TTCI.pessimistic * values.pessimisticTTCI;
+      values.roughEstimateOfSI =
+        COEFFICIENTS.SI.intercept +
+        COEFFICIENTS.SI.FCP * values.roughEstimateOfFCP +
+        COEFFICIENTS.SI.FMP * values.roughEstimateOfFMP +
+        COEFFICIENTS.SI.TTCI * values.roughEstimateOfTTCI +
+        COEFFICIENTS.SI.layouts * values.speedIndexLayouts +
+        COEFFICIENTS.SI.layoutsAndPaints * values.speedIndexLayoutsAndPaints;
 
       // While the raw values will never be lower than following metric, the weights make this
       // theoretically possible, so take the maximum if this happens.
       values.roughEstimateOfFMP = Math.max(values.roughEstimateOfFCP, values.roughEstimateOfFMP);
       values.roughEstimateOfTTCI = Math.max(values.roughEstimateOfFMP, values.roughEstimateOfTTCI);
+      values.roughEstimateOfSI = Math.max(values.roughEstimateOfFCP, values.roughEstimateOfSI);
 
       const score = Audit.computeLogNormalScore(
         values.roughEstimateOfTTCI,
