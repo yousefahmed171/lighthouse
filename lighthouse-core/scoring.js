@@ -11,7 +11,7 @@
  * @param {number} val
  * @return {number}
  */
-const clamp2decimals = val => Math.round(val * 100) / 100;
+const clampTo2Decimals = val => Math.round(val * 100) / 100;
 
 class ReportScoring {
   /**
@@ -32,7 +32,7 @@ class ReportScoring {
       {weight: 0, sum: 0}
     );
 
-    return clamp2decimals(results.sum / results.weight || 0);
+    return clampTo2Decimals(results.sum / results.weight || 0);
   }
 
   /**
@@ -57,7 +57,7 @@ class ReportScoring {
           audit.weight = 0;
           result.informative = true;
         }
-        result.score = clamp2decimals(result.score);
+        result.score = clampTo2Decimals(result.score);
 
         if (!Number.isFinite(result.score)) {
           throw new Error(`Invalid score: ${result.score}`);
