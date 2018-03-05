@@ -97,23 +97,10 @@ class Audit {
   /**
    * @param {!Audit} audit
    * @param {!AuditResult} result
-   * @return {!AuditFullResult}
+   * @return {{score: number, scoreDisplayMode: string}}
    */
-  static generateAuditResult(audit, result) {
-    if (typeof result.rawValue === 'undefined') {
-      throw new Error('generateAuditResult requires a rawValue');
-    }
-
+  static _normalizeAuditScore(audit, result) {
     let score = typeof result.score === 'undefined' ? result.rawValue : result.score;
-    let displayValue = result.displayValue;
-    if (typeof displayValue === 'undefined') {
-      displayValue = result.rawValue ? result.rawValue : '';
-    }
-
-    // The same value or true should be '' it doesn't add value to the report
-    if (displayValue === score) {
-      displayValue = '';
-    }
 
     if (typeof score === 'boolean' || score === null) {
       score = score ? 1 : 0;
@@ -123,12 +110,47 @@ class Audit {
       throw new Error(`Invalid score: ${score}`);
     }
 
+
+    if (score > 1) {
+      throw new Error(`Audit score for ${audit.meta.name} is > 1`);
+    }
+
     const scoreDisplayMode = result.scoreDisplayMode || audit.meta.scoreDisplayMode ||
         Audit.SCORING_MODES.BINARY;
 
+    return {
+      score,
+      scoreDisplayMode,
+    };
+  }
+
+  /**
+   * @param {!Audit} audit
+   * @param {!AuditResult} result
+   * @return {!AuditFullResult}
+   */
+  static generateAuditResult(audit, result) {
+    if (typeof result.rawValue === 'undefined') {
+      throw new Error('generateAuditResult requires a rawValue');
+    }
+
+    let displayValue = result.displayValue;
+    // TODO: remove this bizarre fallback logic. (see #458)
+    if (typeof displayValue === 'undefined') {
+      displayValue = result.rawValue ? result.rawValue : '';
+    }
+
+    const {score, scoreDisplayMode} = Audit._normalizeAuditScore(audit, result);
+
+    // The same value or true should be '' it doesn't add value to the report
+    // TODO: throw in this case. Why do we even do this?
+    if (displayValue === score) {
+      displayValue = '';
+    }
+
     let auditDescription = audit.meta.description;
     if (audit.meta.failureDescription) {
-      if (!score || (typeof score === 'number' && score < 100)) {
+      if (score < 1) {
         auditDescription = audit.meta.failureDescription;
       }
     }

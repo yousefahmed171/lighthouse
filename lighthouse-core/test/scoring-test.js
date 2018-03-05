@@ -45,7 +45,7 @@ describe('ReportScoring', () => {
     it('should score the categories', () => {
       const resultsByAuditId = {
         'my-audit': {rawValue: 'you passed', score: 0},
-        'my-boolean-audit': {score: 0, extendedInfo: {}},
+        'my-boolean-audit': {score: 1.00, extendedInfo: {}},
         'my-scored-audit': {score: 1.00},
         'my-failed-audit': {score: .20},
         'my-boolean-failed-audit': {score: 0},

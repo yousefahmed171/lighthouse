@@ -58,10 +58,6 @@ class ReportScoring {
           result.informative = true;
         }
         result.score = clampTo2Decimals(result.score);
-
-        if (!Number.isFinite(result.score)) {
-          throw new Error(`Invalid score: ${result.score}`);
-        }
       });
 
       const scores = category.audits.map(audit => ({

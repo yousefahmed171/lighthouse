@@ -61,8 +61,8 @@ class TotalByteWeight extends ByteEfficiencyAudit {
       results = results.sort((itemA, itemB) => itemB.totalBytes - itemA.totalBytes).slice(0, 10);
 
       // Use the CDF of a log-normal distribution for scoring.
-      //   <= 1600KB: score≈100
-      //   4000KB: score=50
+      //   <= 1600KB: score≈1.00
+      //   4000KB: score=.50
       //   >= 9000KB: score≈0
       const score = ByteEfficiencyAudit.computeLogNormalScore(
         totalBytes,
