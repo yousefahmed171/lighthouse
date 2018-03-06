@@ -38,6 +38,7 @@ interface AuditResult {
   score: number;            // The scored value determined by the audit a number `0-1`, representing displayed scores of 0-100.
   scoreDisplayMode: string; // A string identifying how granular the score is meant to be indicating, i.e. is the audit pass/fail (scores of 0 or 1) or are there shades of gray (scores of 0-1 which map to displayed scores of 0-100).
   error: boolean;           // Set to true if there was an an exception thrown within the audit.
+  debugString?: string;     // Expresses an error observed while running this audit
 }
 
 /* A few safelisted AuditResults (within Performance) will offer details */
