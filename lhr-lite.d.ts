@@ -4,18 +4,15 @@ interface LHRLite {
   initialUrl: string;        // The URL that was supplied to Lighthouse and initially navigated to.
   url: string;               // The post-redirects URL that Lighthouse loaded
   generatedTime: string;     // The ISO-8601 timestamp of when the results were generated
-  audits: AuditFullResults;  // An object containing the results of the audits
+  audits: AuditResults;      // An object containing the results of the audits
   lighthouseVersion: string; // The version of Lighthouse with which these results were generated
-}
-
-export interface Results {
 }
 
 interface AuditResults {
   [metric: string]: AuditResult  // Each AuditResult is keyed by it's `id` identifier
 }
 
-/* All audits offer a description and score of pass/fail/0-100 */
+/* All audits offer a description and score of pass/fail/0-1 */
 interface AuditResult {
   id: string;               // The string identifier of the audit in kebab case.
   title: string;            // The brief description of the audit. The text can change depending on if the audit passed or failed.
@@ -31,14 +28,16 @@ interface DetailedAuditResult extends AuditResult {
 }
 
 interface AuditDetails {
-  type: string,
-  summary: {
-    wastedMs?: number
-    wastedBytes?: number
-    rawValue?: number    //  The unscored value determined by the audit. Typically this will match the score if there's no additional information to impart. For performance audits, this value is typically a number indicating the metric value.
-  }
+  type: DetailsType // one of 'metric' 'opportunity' 'table'
+  summary?: OpportunitySummary | MetricSummary // type of 'metric' or 'opportunity' will match the obj provided here
   headings: AuditTableHeading[]
-};
+ };
+
+enum DetailsType {
+  Metric = 'metric',
+  Opportunity = 'opportunity',
+  Table = 'table'
+ }
 
 interface AuditTableHeading {
   key: string           // The property key name within DetailsItem being described
@@ -47,6 +46,15 @@ interface AuditTableHeading {
   displayUnit?: string  // How the data should be displayed (e.g. bytes => kilobytes)
   granularity?: string  // If rounding should be applied, and to what degree
 }
+
+ interface MetricSummary {
+  timing?: number        // The value of the metric expressed in milliseconds
+ }
+
+ interface OpportunitySummary {
+  wastedMs: number
+  wastedBytes?: number
+ }
 
 /* details.items can contain details about wasted bytes or wasted time */
 interface WastedBytesDetails extends AuditDetails {
