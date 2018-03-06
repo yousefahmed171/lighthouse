@@ -6,11 +6,29 @@ interface LHRLite {
   generatedTime: string;     // The ISO-8601 timestamp of when the results were generated
   audits: AuditResults;      // An object containing the results of the audits
   lighthouseVersion: string; // The version of Lighthouse with which these results were generated
+  reportCategories: CategoryMeta[];  // The top-level categories, their overall scores, and member audits
 }
 
 interface AuditResults {
   [metric: string]: AuditResult  // Each AuditResult is keyed by it's `id` identifier
 }
+
+
+/* Category Metadata */
+interface CategoryMeta {
+  id: string;             // The string identifier of the category.
+  name: string;           // The human-friendly name of the category
+  description: string;    // A brief description of the purpose of the category, supports markdown links.
+  score: number;          // The overall score of the category, the weighted average of all its audits.
+  audits: AuditMeta[];    // An array of all the audit meta entries within the category.
+}
+
+interface AuditMeta {
+  id: string;              // Matches the `id` of the AuditResult
+  weight: number;          // The weight of the audit's score in the overall category score.
+  group?: string;          // Grouping within the category
+}
+
 
 /* All audits offer a description and score of pass/fail/0-1 */
 interface AuditResult {
