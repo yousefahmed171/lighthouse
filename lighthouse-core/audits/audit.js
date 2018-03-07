@@ -114,12 +114,27 @@ class Audit {
     if (displayValue === score) {
       displayValue = '';
     }
+
+    // TODO: restore after initial 3.0 branching
+    // if (typeof score === 'boolean' || score === null) {
+    //   score = score ? 100 : 0;
+    // }
+
+    // if (!Number.isFinite(score)) {
+    //   throw new Error(`Invalid score: ${score}`);
+    // }
+
+    // TODO, don't consider an auditResult's scoringMode (currently applied to all ByteEfficiency)
+    const scoringMode = result.scoringMode || audit.meta.scoringMode || Audit.SCORING_MODES.BINARY;
+    delete result.scoringMode;
+
     let auditDescription = audit.meta.description;
     if (audit.meta.failureDescription) {
       if (!score || (typeof score === 'number' && score < 100)) {
         auditDescription = audit.meta.failureDescription;
       }
     }
+
     return {
       score,
       displayValue: `${displayValue}`,
@@ -127,7 +142,7 @@ class Audit {
       error: result.error,
       debugString: result.debugString,
       extendedInfo: result.extendedInfo,
-      scoringMode: audit.meta.scoringMode || Audit.SCORING_MODES.BINARY,
+      scoringMode,
       informative: audit.meta.informative,
       manual: audit.meta.manual,
       notApplicable: result.notApplicable,

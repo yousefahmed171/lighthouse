@@ -155,23 +155,38 @@ class ReportRenderer {
     perfCategoryRenderer.setTemplateContext(this._templateContext);
 
     const categories = reportSection.appendChild(this._dom.createElement('div', 'lh-categories'));
+
+    ReportRenderer.assignAuditResultsIntoCategories(report.audits, report.reportCategories);
+
     for (const category of report.reportCategories) {
       if (scoreHeader) {
         scoreHeader.appendChild(categoryRenderer.renderScoreGauge(category));
       }
 
       let renderer = categoryRenderer;
-
       if (category.id === 'performance') {
         renderer = perfCategoryRenderer;
       }
-
       categories.appendChild(renderer.render(category, report.reportGroups));
     }
 
     reportSection.appendChild(this._renderReportFooter(report));
 
     return container;
+  }
+
+  /**
+   * Place the AuditResult into the auditDfn (which has just weight & group)
+   * @param {!Object<string, !ReportRenderer.AuditResultJSON>} audits
+   * @param {!Array<!ReportRenderer.CategoryJSON>} reportCategories
+   */
+  static assignAuditResultsIntoCategories(audits, reportCategories) {
+    for (const category of reportCategories) {
+      category.audits.forEach(auditMeta => {
+        const result = audits[auditMeta.id];
+        auditMeta.result = result;
+      });
+    }
   }
 }
 
@@ -184,7 +199,6 @@ if (typeof module !== 'undefined' && module.exports) {
 /**
  * @typedef {{
  *     id: string,
- *     score: number,
  *     weight: number,
  *     group: (string|undefined),
  *     result: (ReportRenderer.AuditResultJSON|undefined)
@@ -205,6 +219,7 @@ ReportRenderer.AuditJSON; // eslint-disable-line no-unused-expressions
  *     scoringMode: string,
  *     extendedInfo: Object,
  *     error: boolean,
+ *     score: number,
  *     details: (!DetailsRenderer.DetailsJSON|undefined),
  * }}
  */
@@ -214,7 +229,6 @@ ReportRenderer.AuditResultJSON; // eslint-disable-line no-unused-expressions
  * @typedef {{
  *     name: string,
  *     id: string,
- *     weight: number,
  *     score: number,
  *     description: string,
  *     audits: !Array<!ReportRenderer.AuditJSON>
