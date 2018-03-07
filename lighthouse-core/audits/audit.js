@@ -115,8 +115,7 @@ class Audit {
       throw new Error(`Audit score for ${audit.meta.name} is > 1`);
     }
 
-    const scoreDisplayMode = result.scoreDisplayMode || audit.meta.scoreDisplayMode ||
-        Audit.SCORING_MODES.BINARY;
+    const scoreDisplayMode = audit.meta.scoreDisplayMode || Audit.SCORING_MODES.BINARY;
 
     return {
       score,

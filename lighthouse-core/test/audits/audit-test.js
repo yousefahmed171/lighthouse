@@ -61,14 +61,6 @@ describe('Audit', () => {
       assert.throws(_ => Audit._normalizeAuditScore(B, {rawValue: true, score: NaN}), re);
       assert.throws(_ => Audit._normalizeAuditScore(B, {rawValue: true, score: '50'}), re);
     });
-
-    it('picks the scoreDisplayMode returned by an audit if provided', () => {
-      const {scoreDisplayMode} = Audit._normalizeAuditScore(B, {
-        rawValue: true,
-        scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
-      });
-      assert.equal(scoreDisplayMode, Audit.SCORING_MODES.NUMERIC);
-    });
   });
 
   describe('generateAuditResult', () => {
