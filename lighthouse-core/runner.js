@@ -93,11 +93,9 @@ class Runner {
       const resultsById = {};
       for (const audit of runResults.auditResults) resultsById[audit.name] = audit;
 
-      let categories;
+      let report;
       if (opts.config.categories) {
-        Runner._scoreAndCategorize(opts, resultsById);
-        // COMPAT: after dropping Node 6, upgrade to use Object.values
-        categories = Object.keys(opts.config.categories).map(key => opts.config.categories[key]);
+        report = Runner._scoreAndCategorize(opts, resultsById);
       }
 
       return {
@@ -110,7 +108,8 @@ class Runner {
         audits: resultsById,
         artifacts: runResults.artifacts,
         runtimeConfig: Runner.getRuntimeConfig(opts.flags),
-        reportCategories: categories,
+        score: report ? report.score : 0,
+        reportCategories: report ? report.categories : [],
         reportGroups: opts.config.groups,
       };
     }).catch(err => {
@@ -193,7 +192,7 @@ class Runner {
    * @param {{}} resultsById
    */
   static _scoreAndCategorize(opts, resultsById) {
-    ReportScoring.scoreAllCategories(opts.config, resultsById);
+    return ReportScoring.scoreAllCategories(opts.config, resultsById);
   }
 
   /**

@@ -13,33 +13,30 @@ class ReportScoring {
    * @return {number}
    */
   static arithmeticMean(items) {
-    const results = items.reduce(
-      (result, item) => {
-        const score = Number(item.score) || 0;
-        const weight = Number(item.weight) || 0;
-        return {
-          weight: result.weight + weight,
-          sum: result.sum + score * weight,
-        };
-      },
-      {weight: 0, sum: 0}
-    );
+    const results = items.reduce((result, item) => {
+      const score = Number(item.score) || 0;
+      const weight = Number(item.weight) || 0;
+      return {
+        weight: result.weight + weight,
+        sum: result.sum + score * weight,
+      };
+    }, {weight: 0, sum: 0});
 
-    return results.sum / results.weight || 0;
+    return (results.sum / results.weight) || 0;
   }
 
   /**
    * Returns the report JSON object with computed scores.
-   * @param {{categories: !Object<string, {id: string|undefined, weight: number|undefined, score: number|undefined, audits: !Array<{id: string, weight: number|undefined}>}>}} config
+   * @param {{categories: !Object<string, {id: string|undefined, weight: number|undefined, audits: !Array<{id: string, weight: number|undefined}>}>}} config
    * @param {!Object<{score: ?number|boolean|undefined}>} resultsByAuditId
-   * @void
+   * @return {{score: number, categories: !Array<{audits: !Array<{score: number, result: !Object}>}>}}
    */
   static scoreAllCategories(config, resultsByAuditId) {
-    Object.keys(config.categories).forEach(categoryId => {
+    const categories = Object.keys(config.categories).map(categoryId => {
       const category = config.categories[categoryId];
       category.id = categoryId;
 
-      category.audits.forEach(audit => {
+      const audits = category.audits.map(audit => {
         const result = resultsByAuditId[audit.id];
         // Cast to number to catch `null` and undefined when audits error
         let auditScore = Number(result.score) || 0;
@@ -56,17 +53,15 @@ class ReportScoring {
           result.informative = true;
         }
 
-        result.score = auditScore;
+        return Object.assign({}, audit, {result, score: auditScore});
       });
 
-      const scores = category.audits.map(audit => ({
-        score: resultsByAuditId[audit.id].score,
-        weight: audit.weight,
-      }));
-      const categoryScore = ReportScoring.arithmeticMean(scores);
-      // mutate config.categories[].score
-      category.score = categoryScore;
+      const categoryScore = ReportScoring.arithmeticMean(audits);
+      return Object.assign({}, category, {audits, score: categoryScore});
     });
+
+    const overallScore = ReportScoring.arithmeticMean(categories);
+    return {score: overallScore, categories};
   }
 }
 
