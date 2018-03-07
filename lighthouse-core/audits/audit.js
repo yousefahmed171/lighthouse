@@ -133,19 +133,9 @@ class Audit {
       throw new Error('generateAuditResult requires a rawValue');
     }
 
-    let displayValue = result.displayValue;
-    // TODO: remove this bizarre fallback logic. (see #458)
-    if (typeof displayValue === 'undefined') {
-      displayValue = result.rawValue ? result.rawValue : '';
-    }
-
     const {score, scoreDisplayMode} = Audit._normalizeAuditScore(audit, result);
 
-    // The same value or true should be '' it doesn't add value to the report
-    // TODO: throw in this case. Why do we even do this?
-    if (displayValue === score) {
-      displayValue = '';
-    }
+    const displayValue = result.displayValue ? `${result.displayValue}` : '';
 
     let auditDescription = audit.meta.description;
     if (audit.meta.failureDescription) {
@@ -156,7 +146,7 @@ class Audit {
 
     return {
       score,
-      displayValue: `${displayValue}`,
+      displayValue,
       rawValue: result.rawValue,
       error: result.error,
       debugString: result.debugString,

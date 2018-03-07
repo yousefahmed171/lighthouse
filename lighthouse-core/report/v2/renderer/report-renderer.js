@@ -214,7 +214,7 @@ ReportRenderer.AuditJSON; // eslint-disable-line no-unused-expressions
  *     manual: (boolean|undefined),
  *     notApplicable: (boolean|undefined),
  *     debugString: (string|undefined),
- *     displayValue: string,
+ *     displayValue: (string|undefined),
  *     helpText: string,
  *     scoreDisplayMode: string,
  *     extendedInfo: Object,

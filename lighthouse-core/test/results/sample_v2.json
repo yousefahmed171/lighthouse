@@ -1,7 +1,7 @@
 {
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3358.0 Safari/537.36",
   "lighthouseVersion": "2.9.1",
-  "generatedTime": "2018-03-07T23:35:24.063Z",
+  "generatedTime": "2018-03-07T23:50:44.112Z",
   "initialUrl": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "runWarnings": [],
@@ -64,7 +64,7 @@
     },
     "viewport": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "debugString": "",
       "scoreDisplayMode": "binary",
@@ -74,7 +74,7 @@
     },
     "without-javascript": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "name": "without-javascript",
@@ -111,7 +111,7 @@
     },
     "load-fast-enough-for-pwa": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "extendedInfo": {
         "value": {
@@ -180,7 +180,7 @@
     },
     "screenshot-thumbnails": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "informative": true,
@@ -279,7 +279,7 @@
     },
     "errors-in-console": {
       "score": 0,
-      "displayValue": "5",
+      "displayValue": "",
       "rawValue": 5,
       "scoreDisplayMode": "binary",
       "name": "errors-in-console",
@@ -400,7 +400,7 @@
     },
     "user-timings": {
       "score": 1,
-      "displayValue": "0",
+      "displayValue": "",
       "rawValue": true,
       "extendedInfo": {
         "value": []
@@ -860,7 +860,7 @@
     },
     "content-width": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "debugString": "",
       "scoreDisplayMode": "binary",
@@ -1197,7 +1197,7 @@
     },
     "font-display": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "name": "font-display",
@@ -1211,7 +1211,7 @@
     },
     "network-requests": {
       "score": 1,
-      "displayValue": "18",
+      "displayValue": "",
       "rawValue": 18,
       "extendedInfo": {
         "value": [
@@ -1656,7 +1656,7 @@
     },
     "bypass": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "extendedInfo": {},
       "scoreDisplayMode": "binary",
@@ -1762,7 +1762,7 @@
     },
     "document-title": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "extendedInfo": {},
       "scoreDisplayMode": "binary",
@@ -1780,7 +1780,7 @@
     },
     "duplicate-id": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "extendedInfo": {},
       "scoreDisplayMode": "binary",
@@ -2164,7 +2164,7 @@
     },
     "meta-viewport": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "extendedInfo": {},
       "scoreDisplayMode": "binary",
@@ -4429,7 +4429,7 @@
     },
     "http-status-code": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "name": "http-status-code",
@@ -4438,7 +4438,7 @@
     },
     "font-size": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "name": "font-size",
@@ -4480,7 +4480,7 @@
     },
     "link-text": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "name": "link-text",
@@ -4506,7 +4506,7 @@
     },
     "hreflang": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "name": "hreflang",
@@ -4520,7 +4520,7 @@
     },
     "plugins": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "name": "plugins",
@@ -4534,7 +4534,7 @@
     },
     "canonical": {
       "score": 1,
-      "displayValue": "true",
+      "displayValue": "",
       "rawValue": true,
       "scoreDisplayMode": "binary",
       "informative": true,
@@ -5246,6 +5246,6 @@
     }
   },
   "timing": {
-    "total": 1082
+    "total": 1048
   }
 }

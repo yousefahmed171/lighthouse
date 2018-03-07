@@ -35,11 +35,11 @@ module.exports = [
       },
       'user-timings': {
         score: 1,
-        displayValue: '0',
+        displayValue: '',
       },
       'critical-request-chains': {
         score: 1,
-        displayValue: '0',
+        displayValue: '',
       },
       'webapp-install-banner': {
         score: 0,
@@ -98,11 +98,11 @@ module.exports = [
       },
       'user-timings': {
         score: 1,
-        displayValue: '0',
+        displayValue: '',
       },
       'critical-request-chains': {
         score: 1,
-        displayValue: '0',
+        displayValue: '',
       },
       'webapp-install-banner': {
         score: 0,
