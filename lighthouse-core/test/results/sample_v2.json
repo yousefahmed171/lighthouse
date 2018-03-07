@@ -1,7 +1,7 @@
 {
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3358.0 Safari/537.36",
   "lighthouseVersion": "2.9.1",
-  "generatedTime": "2018-03-02T22:12:35.706Z",
+  "generatedTime": "2018-03-09T02:53:06.836Z",
   "initialUrl": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "runWarnings": [],
@@ -1209,6 +1209,308 @@
         "items": []
       }
     },
+    "network-requests": {
+      "score": 100,
+      "displayValue": "18",
+      "rawValue": 18,
+      "extendedInfo": {
+        "value": [
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
+            "startTime": 0,
+            "endTime": 640.1550000009593,
+            "transferSize": 12640,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=2000&async=true",
+            "startTime": 630.2950000099372,
+            "endTime": 2635.035000013886,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=100",
+            "startTime": 635.496000002604,
+            "endTime": 1204.6590000099968,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/unknown404.css?delay=200",
+            "startTime": 636.6400000115391,
+            "endTime": 1213.2910000218544,
+            "transferSize": 139,
+            "statusCode": 404
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=2200",
+            "startTime": 638.0040000076406,
+            "endTime": 2849.3670000170823,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_disabled.css?delay=200&isdisabled",
+            "startTime": 638.7899999972433,
+            "endTime": 1220.04100002232,
+            "transferSize": 1108,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_partial_a.html?delay=200",
+            "startTime": 640.5979999981355,
+            "endTime": 1228.5180000180844,
+            "transferSize": 736,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_partial_b.html?delay=200&isasync",
+            "startTime": 641.3450000109151,
+            "endTime": 1776.4320000133011,
+            "transferSize": 733,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=3000&async=true",
+            "startTime": 642.8679999953602,
+            "endTime": 4216.161000018474,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.js",
+            "startTime": 644.0820000134408,
+            "endTime": 1792.0860000012908,
+            "transferSize": 1703,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/empty_module.js?delay=500",
+            "startTime": 645.529000001261,
+            "endTime": 1236.1859999946319,
+            "transferSize": 144,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/lighthouse-480x318.jpg",
+            "startTime": 3951.6250000160653,
+            "endTime": 4779.641000000993,
+            "transferSize": 24741,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/zone.js",
+            "startTime": 2849.7340000176337,
+            "endTime": 3961.049000005005,
+            "transferSize": 71654,
+            "statusCode": 200
+          },
+          {
+            "url": "http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+            "startTime": 3874.7540000185836,
+            "endTime": 4796.288000012282,
+            "transferSize": 30174,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?scriptActivated&delay=200",
+            "startTime": 2924.34100000537,
+            "endTime": 3964.233000006061,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
+            "startTime": 3066.252999997232,
+            "endTime": 3772.7560000203084,
+            "transferSize": 12640,
+            "statusCode": 200
+          },
+          {
+            "url": "blob:http://localhost:10200/ae0eac03-ab9b-4a6a-b299-f5212153e277",
+            "startTime": 3829.6360000094865,
+            "endTime": 3968.59800000675,
+            "transferSize": 0,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/favicon.ico",
+            "startTime": 4967.373000021325,
+            "endTime": 5536.498000001302,
+            "transferSize": 221,
+            "statusCode": 404
+          }
+        ]
+      },
+      "scoringMode": "binary",
+      "informative": true,
+      "name": "network-requests",
+      "description": "Network Requests",
+      "helpText": "Lists the network requests that were made during page load.",
+      "details": {
+        "type": "table",
+        "headings": [
+          {
+            "key": "url",
+            "itemType": "url",
+            "text": "URL"
+          },
+          {
+            "key": "startTime",
+            "itemType": "ms",
+            "granularity": 1,
+            "text": "Start Time"
+          },
+          {
+            "key": "endTime",
+            "itemType": "ms",
+            "granularity": 1,
+            "text": "End Time"
+          },
+          {
+            "key": "transferSize",
+            "itemType": "bytes",
+            "displayUnit": "kb",
+            "granularity": 1,
+            "text": "Transfer Size"
+          },
+          {
+            "key": "statusCode",
+            "itemType": "text",
+            "text": "Status Code"
+          }
+        ],
+        "items": [
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
+            "startTime": 0,
+            "endTime": 640.1550000009593,
+            "transferSize": 12640,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=2000&async=true",
+            "startTime": 630.2950000099372,
+            "endTime": 2635.035000013886,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=100",
+            "startTime": 635.496000002604,
+            "endTime": 1204.6590000099968,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/unknown404.css?delay=200",
+            "startTime": 636.6400000115391,
+            "endTime": 1213.2910000218544,
+            "transferSize": 139,
+            "statusCode": 404
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=2200",
+            "startTime": 638.0040000076406,
+            "endTime": 2849.3670000170823,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_disabled.css?delay=200&isdisabled",
+            "startTime": 638.7899999972433,
+            "endTime": 1220.04100002232,
+            "transferSize": 1108,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_partial_a.html?delay=200",
+            "startTime": 640.5979999981355,
+            "endTime": 1228.5180000180844,
+            "transferSize": 736,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_partial_b.html?delay=200&isasync",
+            "startTime": 641.3450000109151,
+            "endTime": 1776.4320000133011,
+            "transferSize": 733,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?delay=3000&async=true",
+            "startTime": 642.8679999953602,
+            "endTime": 4216.161000018474,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.js",
+            "startTime": 644.0820000134408,
+            "endTime": 1792.0860000012908,
+            "transferSize": 1703,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/empty_module.js?delay=500",
+            "startTime": 645.529000001261,
+            "endTime": 1236.1859999946319,
+            "transferSize": 144,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/lighthouse-480x318.jpg",
+            "startTime": 3951.6250000160653,
+            "endTime": 4779.641000000993,
+            "transferSize": 24741,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/zone.js",
+            "startTime": 2849.7340000176337,
+            "endTime": 3961.049000005005,
+            "transferSize": 71654,
+            "statusCode": 200
+          },
+          {
+            "url": "http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+            "startTime": 3874.7540000185836,
+            "endTime": 4796.288000012282,
+            "transferSize": 30174,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.css?scriptActivated&delay=200",
+            "startTime": 2924.34100000537,
+            "endTime": 3964.233000006061,
+            "transferSize": 821,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
+            "startTime": 3066.252999997232,
+            "endTime": 3772.7560000203084,
+            "transferSize": 12640,
+            "statusCode": 200
+          },
+          {
+            "url": "blob:http://localhost:10200/ae0eac03-ab9b-4a6a-b299-f5212153e277",
+            "startTime": 3829.6360000094865,
+            "endTime": 3968.59800000675,
+            "transferSize": 0,
+            "statusCode": 200
+          },
+          {
+            "url": "http://localhost:10200/favicon.ico",
+            "startTime": 4967.373000021325,
+            "endTime": 5536.498000001302,
+            "transferSize": 221,
+            "statusCode": 404
+          }
+        ]
+      }
+    },
     "pwa-cross-browser": {
       "score": 0,
       "displayValue": "",
@@ -1466,7 +1768,7 @@
       "scoringMode": "binary",
       "name": "document-title",
       "description": "Document has a `<title>` element",
-      "helpText": "Screen reader users use page titles to get an overview of the contents of the page. [Learn more](https://dequeuniversity.com/rules/axe/2.2/document-title?application=lighthouse).",
+      "helpText": "The title gives screen reader users an overview of the page, and search engine users rely on it heavily to determine if a page is relevant to their search. [Learn more](https://developers.google.com/web/tools/lighthouse/audits/title).",
       "details": {
         "type": "list",
         "header": {
@@ -2436,7 +2738,7 @@
           "results": []
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "offscreen-images",
       "description": "Offscreen images",
@@ -2462,7 +2764,7 @@
           "results": []
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "unminified-css",
       "description": "Minify CSS",
@@ -2497,7 +2799,7 @@
           ]
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "unminified-javascript",
       "description": "Minify JavaScript",
@@ -2552,7 +2854,7 @@
           "results": []
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "unused-css-rules",
       "description": "Unused CSS rules",
@@ -2588,7 +2890,7 @@
           ]
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "uses-webp-images",
       "description": "Serve images in next-gen formats",
@@ -2649,7 +2951,7 @@
           "results": []
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "uses-optimized-images",
       "description": "Optimize images",
@@ -2690,7 +2992,7 @@
           ]
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "uses-request-compression",
       "description": "Enable text compression",
@@ -2751,7 +3053,7 @@
           "results": []
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "uses-responsive-images",
       "description": "Properly size images",
@@ -3072,7 +3374,7 @@
           ]
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "link-blocking-first-paint",
       "description": "Reduce render-blocking stylesheets",
@@ -3725,7 +4027,7 @@
           ]
         }
       },
-      "scoringMode": "numeric",
+      "scoringMode": "binary",
       "informative": true,
       "name": "script-blocking-first-paint",
       "description": "Reduce render-blocking scripts",
@@ -4192,18 +4494,15 @@
       }
     },
     "is-crawlable": {
-      "score": 100,
+      "score": 0,
       "displayValue": "",
-      "rawValue": true,
+      "rawValue": null,
+      "error": true,
+      "debugString": "Audit error: Required RobotsTxt gatherer did not run.",
       "scoringMode": "binary",
       "name": "is-crawlable",
-      "description": "Page isn’t blocked from indexing",
-      "helpText": "The \"Robots\" directives tell crawlers how your content should be indexed. [Learn more](https://developers.google.com/search/reference/robots_meta_tag).",
-      "details": {
-        "type": "table",
-        "headings": [],
-        "items": []
-      }
+      "description": "Page is blocked from indexing",
+      "helpText": "Search engines are unable to include your pages in search results if they don't have permission to crawl them. [Learn more](https://developers.google.com/lighthouse/audits/indexing)."
     },
     "hreflang": {
       "score": 100,
@@ -4242,7 +4541,7 @@
       "notApplicable": true,
       "name": "canonical",
       "description": "Document has a valid `rel=canonical`",
-      "helpText": "Canonical links suggest which URL to show in search results. Read more in [Use canonical URLs](https://support.google.com/webmasters/answer/139066)."
+      "helpText": "Canonical links suggest which URL to show in search results. [Learn more](https://developers.google.com/web/tools/lighthouse/audits/canonical)."
     },
     "mobile-friendly": {
       "score": 0,
@@ -4402,6 +4701,10 @@
           "id": "critical-request-chains",
           "weight": 0,
           "group": "perf-info"
+        },
+        {
+          "id": "network-requests",
+          "weight": 0
         },
         {
           "id": "user-timings",
@@ -4869,7 +5172,7 @@
         }
       ],
       "id": "seo",
-      "score": 88.88888888888889
+      "score": 77.77777777777777
     }
   ],
   "reportGroups": {
@@ -4943,6 +5246,6 @@
     }
   },
   "timing": {
-    "total": 1085
+    "total": 1112
   }
 }
