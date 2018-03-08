@@ -202,12 +202,14 @@ class CategoryRenderer {
   _renderManualAudits(manualAudits, groupDefinitions, element) {
     // While we could support rendering multiple groups of manual audits, it doesn't
     // seem desirable for UX or renderer complexity. So we'll throw.
-    const groupsIds = Array.from(new Set(manualAudits.map(a => a.group)));
-    // eslint-disable-next-line no-console
-    console.assert(groupsIds.length <= 1, 'More than 1 manual audit group found.');
-    if (!groupsIds.length) return;
+    const groupsIds = new Set(manualAudits.map(a => a.group));
+    /* eslint-disable no-console */
+    console.assert(groupsIds.size <= 1, 'More than 1 manual audit group found.');
+    console.assert(!groupsIds.has(undefined), 'Some manual audits don\'t belong to a group');
+    /* eslint-enable no-console */
+    if (!groupsIds.size) return;
 
-    const groupId = groupsIds[0];
+    const groupId = /** @type {string} */ (Array.from(groupsIds)[0]);
     const auditGroupElem = this.renderAuditGroup(groupDefinitions[groupId], {expandable: true});
     auditGroupElem.classList.add('lh-audit-group--manual');
 

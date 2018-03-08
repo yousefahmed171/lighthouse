@@ -347,7 +347,7 @@ if (typeof module !== 'undefined' && module.exports) {
  * @typedef {{
  *     type: string,
  *     value: (string|number|undefined),
- *     summary: (DetailsRenderer.DetailsSummary|undefined),
+ *     summary: (DetailsRenderer.OpportunitySummary|undefined),
  *     granularity: (number|undefined),
  *     displayUnit: (string|undefined)
  * }}
@@ -451,4 +451,4 @@ DetailsRenderer.FilmstripDetails; // eslint-disable-line no-unused-expressions
  *     wastedBytes: (number|undefined),
  * }}
  */
-DetailsRenderer.DetailsSummary; // eslint-disable-line no-unused-expressions
+DetailsRenderer.OpportunitySummary; // eslint-disable-line no-unused-expressions

@@ -67,7 +67,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
     }
 
     const details = audit.result.details;
-    const summaryInfo = /** @type {!DetailsRenderer.DetailsSummary}
+    const summaryInfo = /** @type {!DetailsRenderer.OpportunitySummary}
         */ (details && details.summary);
     // eslint-disable-next-line no-console
     console.assert(summaryInfo, 'Missing `summary` for perf-hint audit');
