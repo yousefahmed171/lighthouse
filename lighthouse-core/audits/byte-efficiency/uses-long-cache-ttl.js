@@ -8,7 +8,6 @@
 const assert = require('assert');
 const parseCacheControl = require('parse-cache-control');
 const Audit = require('../audit');
-const ByteEfficiencyAudit = require('./byte-efficiency-audit');
 const WebInspector = require('../../lib/web-inspector');
 const URL = require('../../lib/url-shim');
 
@@ -32,7 +31,7 @@ class CacheHeaders extends Audit {
       helpText:
         'A long cache lifetime can speed up repeat visits to your page. ' +
         '[Learn more](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#cache-control).',
-      scoringMode: ByteEfficiencyAudit.SCORING_MODES.NUMERIC,
+      scoringMode: Audit.SCORING_MODES.NUMERIC,
       requiredArtifacts: ['devtoolsLogs'],
     };
   }
@@ -158,7 +157,7 @@ class CacheHeaders extends Audit {
    * @return {!AuditResult}
    */
   static audit(artifacts) {
-    const devtoolsLogs = artifacts.devtoolsLogs[ByteEfficiencyAudit.DEFAULT_PASS];
+    const devtoolsLogs = artifacts.devtoolsLogs[Audit.DEFAULT_PASS];
     return artifacts.requestNetworkRecords(devtoolsLogs).then(records => {
       const results = [];
       let queryStringCount = 0;
@@ -210,7 +209,7 @@ class CacheHeaders extends Audit {
       //   <= 4KB: score≈100
       //   768KB: score=50
       //   >= 4600KB: score≈5
-      const score = ByteEfficiencyAudit.computeLogNormalScore(
+      const score = Audit.computeLogNormalScore(
         totalWastedBytes / 1024,
         SCORING_POINT_OF_DIMINISHING_RETURNS,
         SCORING_MEDIAN
@@ -224,7 +223,7 @@ class CacheHeaders extends Audit {
       ];
 
       const summary = {wastedBytes: totalWastedBytes};
-      const details = ByteEfficiencyAudit.makeTableDetails(headings, results, summary);
+      const details = Audit.makeTableDetails(headings, results, summary);
 
       return {
         score,

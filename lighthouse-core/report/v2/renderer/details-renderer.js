@@ -6,7 +6,6 @@
 'use strict';
 
 /* globals self CriticalRequestChainRenderer Util URL */
-/* eslint-disable no-console */
 
 class DetailsRenderer {
   /**
@@ -94,8 +93,6 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderTextURL(text) {
-    console.assert(!('text' in text), 'url details should not have .text');
-    console.assert('value' in text, 'url details must have .value');
     const url = text.value;
 
     let displayedPath;
@@ -137,8 +134,6 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderLink(details) {
-    console.assert(('url' in details), 'link details must have .url');
-    console.assert(('text' in details), 'link details must have .text');
     const allowedProtocols = ['https:', 'http:'];
     const url = new URL(details.url);
     if (!allowedProtocols.includes(url.protocol)) {
@@ -163,8 +158,6 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderText(text) {
-    console.assert(!('text' in text), 'text details should not have .text');
-    console.assert(('value' in text), 'text details must have .value');
     const element = this._dom.createElement('div', 'lh-text');
     element.textContent = text.value;
     return element;
@@ -177,9 +170,6 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderThumbnail(details) {
-    console.assert(!('url' in details), 'thumbnail details should not have .url');
-    console.assert(('value' in details), 'thumbnail details must have .value');
-
     const element = this._dom.createElement('img', 'lh-thumbnail');
     element.src = details.value;
     element.title = details.value;
@@ -340,8 +330,6 @@ class DetailsRenderer {
    * @return {!Element}
    */
   _renderCode(details) {
-    console.assert(!('text' in details), 'code details should not have .text');
-    console.assert(('value' in details), 'code details must have .value');
     const pre = this._dom.createElement('pre', 'lh-code');
     pre.textContent = details.value;
     return pre;

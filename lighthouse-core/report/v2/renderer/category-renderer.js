@@ -200,26 +200,22 @@ class CategoryRenderer {
    * @param {!Element} element Parent container to add the manual audits to.
    */
   _renderManualAudits(manualAudits, groupDefinitions, element) {
-    const auditsGroupedByGroup = /** @type {!Object<string,
-        !Array<!ReportRenderer.AuditJSON>>} */ ({});
+    // While we could support rendering multiple groups of manual audits, it doesn't
+    // seem desirable for UX or renderer complexity. So we'll throw.
+    const groupsIds = Array.from(new Set(manualAudits.map(a => a.group)));
+    // eslint-disable-next-line no-console
+    console.assert(groupsIds.length <= 1, 'More than 1 manual audit group found.');
+    if (!groupsIds.length) return;
+
+    const groupId = groupsIds[0];
+    const auditGroupElem = this.renderAuditGroup(groupDefinitions[groupId], {expandable: true});
+    auditGroupElem.classList.add('lh-audit-group--manual');
+
     manualAudits.forEach(audit => {
-      const groupId = audit.group || 'ungrouped';
-      const group = auditsGroupedByGroup[groupId] || [];
-      group.push(audit);
-      auditsGroupedByGroup[groupId] = group;
+      auditGroupElem.appendChild(this.renderAudit(audit));
     });
 
-    Object.keys(auditsGroupedByGroup).forEach(groupId => {
-      const group = groupDefinitions[groupId];
-      const auditGroupElem = this.renderAuditGroup(group, {expandable: true});
-      auditGroupElem.classList.add('lh-audit-group--manual');
-
-      auditsGroupedByGroup[groupId].forEach(audit => {
-        auditGroupElem.appendChild(this.renderAudit(audit));
-      });
-
-      element.appendChild(auditGroupElem);
-    });
+    element.appendChild(auditGroupElem);
   }
 
   /**
