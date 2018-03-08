@@ -237,7 +237,7 @@ class CategoryRenderer {
     this.dom.find('.lh-gauge__wrapper', tmpl).href = `#${category.id}`;
     this.dom.find('.lh-gauge__label', tmpl).textContent = category.name;
 
-    const score = Math.round(category.score);
+    const score = Math.round(category.score * 100);
     const fillRotation = Math.floor((score / 100) * 180);
 
     const gauge = this.dom.find('.lh-gauge', tmpl);

@@ -166,6 +166,11 @@ describe('CategoryRenderer', () => {
 
     it('renders the category header', () => {
       const categoryDOM = renderer.render(category, sampleResults.reportGroups);
+
+      const gauge = categoryDOM.querySelector('.lh-gauge');
+      assert.equal(gauge.textContent.trim(), '35', 'score is 0-100');
+      assert.equal(gauge.getAttribute('data-progress'), '35', 'score gauge is visually 0-100');
+
       const score = categoryDOM.querySelector('.lh-score');
       const value = categoryDOM.querySelector('.lh-score  > .lh-score__value');
       const title = score.querySelector('.lh-score__title');
