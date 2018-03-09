@@ -96,8 +96,7 @@ class Runner {
       let categories;
       if (opts.config.categories) {
         Runner._scoreAndCategorize(opts, resultsById);
-        // COMPAT: after dropping Node 6, upgrade to use Object.values
-        categories = Object.keys(opts.config.categories).map(key => opts.config.categories[key]);
+        categories = Object.values(opts.config.categories);
       }
 
       return {

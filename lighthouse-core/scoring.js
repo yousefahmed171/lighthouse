@@ -35,10 +35,8 @@ class ReportScoring {
    * @void
    */
   static scoreAllCategories(config, resultsByAuditId) {
-    Object.keys(config.categories).forEach(categoryId => {
-      const category = config.categories[categoryId];
+    for (const [categoryId, category] of Object.entries(config.categories)) {
       category.id = categoryId;
-
       category.audits.forEach(audit => {
         const result = resultsByAuditId[audit.id];
         // Cast to number to catch `null` and undefined when audits error
@@ -66,7 +64,7 @@ class ReportScoring {
       const categoryScore = ReportScoring.arithmeticMean(scores);
       // mutate config.categories[].score
       category.score = categoryScore;
-    });
+    };
   }
 }
 
