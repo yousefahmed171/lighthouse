@@ -42,7 +42,13 @@ class ReportScoring {
         // Cast to number to catch `null` and undefined when audits error
         let auditScore = Number(result.score) || 0;
         if (typeof result.score === 'boolean') {
-          auditScore = result.score ? 100 : 0;
+          // HACK removed in the next PR
+          // While we'd like to do this boolean transformation happened on the auditDfn:
+          //     auditScore = result.score ? 100 : 0;
+          // …the original result.score is untouched which means the smokehouse expectations will fail
+          // We're officially rebaselining all those expectations in the next PR...
+          // So for now, we'll keep keep both auditDfn.score and result.score boolean
+          auditScore = result.score;
         }
         // If a result was not applicable, meaning its checks did not run against anything on
         // the page, force it's weight to 0. It will not count during the arithmeticMean() but
