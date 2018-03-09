@@ -445,7 +445,7 @@ describe('Runner', () => {
       assert.equal(results.initialUrl, url);
       assert.equal(gatherRunnerRunSpy.called, true, 'GatherRunner.run was not called');
       assert.equal(results.audits['content-width'].name, 'content-width');
-      assert.equal(results.audits['content-width'].score, 100);
+      assert.equal(results.audits['content-width'].score, true);
       assert.equal(results.reportCategories[0].score, 100);
       assert.equal(results.reportCategories[0].audits[0].id, 'content-width');
     });

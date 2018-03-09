@@ -119,7 +119,7 @@ describe('ReportRenderer V2', () => {
       const container = renderer._dom._document.body;
       const originalResults = JSON.parse(JSON.stringify(sampleResults));
       renderer.renderReport(sampleResults, container);
-      assert.deepStrictEqual(sampleResults, originalResults)
+      assert.deepStrictEqual(sampleResults, originalResults);
     }).timeout(2000);
 
     it('renders a left nav', () => {
