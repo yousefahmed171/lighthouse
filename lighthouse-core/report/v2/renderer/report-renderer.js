@@ -30,9 +30,11 @@ class ReportRenderer {
    * @param {!Element} container Parent element to render the report into.
    */
   renderReport(report, container) {
-    container.textContent = ''; // Remove previous report.
-    const element = container.appendChild(this._renderReport(report));
+    // If any mutations happen to the report within the renderers, we want the original object untouched
+    const clone = /** @type {!ReportRenderer.ReportJSON} */ (JSON.parse(JSON.stringify(report)));
 
+    container.textContent = ''; // Remove previous report.
+    const element = container.appendChild(this._renderReport(clone));
     return /** @type {!Element} **/ (element);
   }
 
