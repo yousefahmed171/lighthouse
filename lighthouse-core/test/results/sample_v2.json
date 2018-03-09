@@ -1,7 +1,7 @@
 {
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3358.0 Safari/537.36",
   "lighthouseVersion": "2.9.1",
-  "generatedTime": "2018-03-07T23:50:44.112Z",
+  "generatedTime": "2018-03-09T03:02:28.589Z",
   "initialUrl": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "url": "http://localhost:10200/dobetterweb/dbw_tester.html",
   "runWarnings": [],
@@ -418,7 +418,7 @@
     },
     "critical-request-chains": {
       "score": 0,
-      "displayValue": "13",
+      "displayValue": "13 chains found",
       "rawValue": false,
       "extendedInfo": {
         "value": {
@@ -5246,6 +5246,6 @@
     }
   },
   "timing": {
-    "total": 1048
+    "total": 1029
   }
 }
