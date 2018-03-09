@@ -38,7 +38,7 @@ describe('PerfCategoryRenderer', () => {
     const dom = new DOM(document);
     const detailsRenderer = new DetailsRenderer(dom);
     renderer = new PerformanceCategoryRenderer(dom, detailsRenderer);
-    ReportRenderer.assignAuditResultsIntoCategories(sampleResults.audits,
+    ReportRenderer.smooshAuditResultsIntoCategories(sampleResults.audits,
       sampleResults.reportCategories);
   });
 

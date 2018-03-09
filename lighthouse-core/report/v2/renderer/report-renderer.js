@@ -156,7 +156,7 @@ class ReportRenderer {
 
     const categories = reportSection.appendChild(this._dom.createElement('div', 'lh-categories'));
 
-    ReportRenderer.assignAuditResultsIntoCategories(report.audits, report.reportCategories);
+    ReportRenderer.smooshAuditResultsIntoCategories(report.audits, report.reportCategories);
 
     for (const category of report.reportCategories) {
       if (scoreHeader) {
@@ -180,7 +180,7 @@ class ReportRenderer {
    * @param {!Object<string, !ReportRenderer.AuditResultJSON>} audits
    * @param {!Array<!ReportRenderer.CategoryJSON>} reportCategories
    */
-  static assignAuditResultsIntoCategories(audits, reportCategories) {
+  static smooshAuditResultsIntoCategories(audits, reportCategories) {
     for (const category of reportCategories) {
       category.audits.forEach(auditMeta => {
         const result = audits[auditMeta.id];
