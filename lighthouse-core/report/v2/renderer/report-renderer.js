@@ -229,6 +229,17 @@ ReportRenderer.AuditResultJSON; // eslint-disable-line no-unused-expressions
 
 /**
  * @typedef {{
+ *     id: string,
+ *     score: number,
+ *     weight: number,
+ *     group: (string|undefined),
+ *     result: (ReportRenderer.AuditResultJSON|undefined)
+ * }}
+ */
+ReportRenderer.AuditJSON; // eslint-disable-line no-unused-expressions
+
+/**
+ * @typedef {{
  *     name: string,
  *     id: string,
  *     score: number,
