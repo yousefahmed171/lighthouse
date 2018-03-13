@@ -288,8 +288,9 @@ const expectations = require(resolveLocalOrCwd(cli['expectations-path']));
 let passingCount = 0;
 let failingCount = 0;
 expectations.forEach(expected => {
-  console.log(`Checking '${expected.initialUrl}'...`);
+  console.log(`Running '${expected.initialUrl}'...`);
   const results = runLighthouse(expected.initialUrl, configPath);
+  console.log(`Comparing results of '${expected.initialUrl}':`);
   const collated = collateResults(results, expected);
   const counts = report(collated);
   passingCount += counts.passed;
