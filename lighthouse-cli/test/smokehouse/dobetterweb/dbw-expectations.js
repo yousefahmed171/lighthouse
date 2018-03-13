@@ -279,46 +279,5 @@ module.exports = [
         },
       },
     },
-  }, {
-    initialUrl: 'http://localhost:10200/online-only.html',
-    url: 'http://localhost:10200/online-only.html',
-    audits: {
-      'is-on-https': {
-        score: true,
-      },
-      'uses-http2': {
-        score: false,
-      },
-      'external-anchors-use-rel-noopener': {
-        score: true,
-      },
-      'appcache-manifest': {
-        score: true,
-      },
-      'geolocation-on-start': {
-        score: true,
-      },
-      'link-blocking-first-paint': {
-        score: 100,
-      },
-      'no-document-write': {
-        score: true,
-      },
-      'no-mutation-events': {
-        score: true,
-      },
-      'no-websql': {
-        score: true,
-      },
-      'script-blocking-first-paint': {
-        score: 100,
-      },
-      'uses-passive-event-listeners': {
-        score: true,
-      },
-      'password-inputs-can-be-pasted-into': {
-        score: true,
-      },
-    },
   },
 ];
