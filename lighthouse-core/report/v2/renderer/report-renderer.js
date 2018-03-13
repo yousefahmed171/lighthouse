@@ -33,6 +33,9 @@ class ReportRenderer {
     // If any mutations happen to the report within the renderers, we want the original object untouched
     const clone = /** @type {!ReportRenderer.ReportJSON} */ (JSON.parse(JSON.stringify(report)));
 
+    if (!Array.isArray(report.reportCategories)) throw new Error('No reportCategories provided.');
+    ReportRenderer.smooshAuditResultsIntoCategories(report.audits, report.reportCategories);
+
     container.textContent = ''; // Remove previous report.
     const element = container.appendChild(this._renderReport(clone));
     return /** @type {!Element} **/ (element);
@@ -158,8 +161,6 @@ class ReportRenderer {
 
     const categories = reportSection.appendChild(this._dom.createElement('div', 'lh-categories'));
 
-    ReportRenderer.smooshAuditResultsIntoCategories(report.audits, report.reportCategories);
-
     for (const category of report.reportCategories) {
       if (scoreHeader) {
         scoreHeader.appendChild(categoryRenderer.renderScoreGauge(category));
@@ -197,16 +198,6 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
   self.ReportRenderer = ReportRenderer;
 }
-
-/**
- * @typedef {{
- *     id: string,
- *     weight: number,
- *     group: (string|undefined),
- *     result: (ReportRenderer.AuditResultJSON|undefined)
- * }}
- */
-ReportRenderer.AuditJSON; // eslint-disable-line no-unused-expressions
 
 /**
  * @typedef {{
