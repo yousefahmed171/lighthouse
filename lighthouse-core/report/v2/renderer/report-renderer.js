@@ -33,8 +33,8 @@ class ReportRenderer {
     // If any mutations happen to the report within the renderers, we want the original object untouched
     const clone = /** @type {!ReportRenderer.ReportJSON} */ (JSON.parse(JSON.stringify(report)));
 
-    if (!Array.isArray(report.reportCategories)) throw new Error('No reportCategories provided.');
-    ReportRenderer.smooshAuditResultsIntoCategories(report.audits, report.reportCategories);
+    if (!Array.isArray(clone.reportCategories)) throw new Error('No reportCategories provided.');
+    ReportRenderer.smooshAuditResultsIntoCategories(clone.audits, clone.reportCategories);
 
     container.textContent = ''; // Remove previous report.
     const element = container.appendChild(this._renderReport(clone));

@@ -9,7 +9,7 @@
 class ReportScoring {
   /**
    * Computes the weighted-average of the score of the list of items.
-   * @param {!Array<{score: number|undefined, weight: number|undefined}>} items
+   * @param {!Array<{score: ?number|boolean|undefined, weight: number|undefined}>} items
    * @return {number}
    */
   static arithmeticMean(items) {
@@ -39,7 +39,6 @@ class ReportScoring {
    * Returns the report JSON object with computed scores.
    * @param {{categories: !Object<string, {id: string|undefined, weight: number|undefined, score: number|undefined, audits: !Array<{id: string, weight: number|undefined}>}>}} config
    * @param {!Object<string, {score: ?number|boolean|undefined, notApplicable: boolean, informative: boolean}>} resultsByAuditId
-   * @return {{score: number, categories: !Array<{audits: !Array<{score: number, result: !Object}>}>}}
    */
   static scoreAllCategories(config, resultsByAuditId) {
     for (const [categoryId, category] of Object.entries(config.categories)) {
@@ -47,6 +46,7 @@ class ReportScoring {
       category.audits.forEach(audit => {
         const result = resultsByAuditId[audit.id];
         // Cast to number to catch `null` and undefined when audits error
+        /** @type {number|boolean} */
         let auditScore = Number(result.score) || 0;
         if (typeof result.score === 'boolean') {
           // HACK removed in the next PR
