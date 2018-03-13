@@ -10,9 +10,8 @@ PIDS=""
 CMDS=""
 
 for d in "$DIR"/*/ ; do
-  echo "${d}run-tests.sh"
   . "${d}run-tests.sh" --share-vars-and-exit
-  yarn smokehouse --config-path=$config --expectations-path=$expectations &
+  node $DIR/smokehouse.js --config-path=$config --expectations-path=$expectations &
   PIDS="$PIDS $!"
 done
 
@@ -23,10 +22,11 @@ done
 # kill static-server
 kill $(jobs -p)
 
-if [ "$FAIL" == "0" ];
-then
+echo ""
+if [ "$FAIL" == "0" ]; then
     echo "PASS: No smoketests failures. \o/"
 else
-    echo "FAIL: run-all-tests found ($FAIL) failing smoketests"
+    echo "FAIL."
+    echo "run-all-tests found ($FAIL) failing smoketests"
     exit 1
 fi
