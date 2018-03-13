@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 
-# node lighthouse-cli/test/fixtures/static-server.js &
-
-# sleep 0.5s
-
 config="lighthouse-cli/test/smokehouse/byte-config.js"
 expectations="lighthouse-cli/test/smokehouse/byte-efficiency/expectations.js"
 
-yarn smokehouse --config-path=$config --expectations-path=$expectations
-exit_code=$?
+if [[ -n "$1" && "$1" == '--share-vars-and-exit' ]]; then
+  return
+fi
 
-# kill test servers
-# kill $(jobs -p)
-
-exit "$exit_code"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $DIR/../run-single-test.sh
