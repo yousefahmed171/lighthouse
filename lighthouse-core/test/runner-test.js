@@ -14,6 +14,7 @@ const assetSaver = require('../lib/asset-saver');
 const assert = require('assert');
 const path = require('path');
 const sinon = require('sinon');
+const rimraf = require('rimraf');
 
 const computedArtifacts = Runner.instantiateComputedArtifacts();
 
@@ -44,9 +45,15 @@ describe('Runner', () => {
       }],
       audits: ['content-width'],
     });
+    const artifactsPath = '.tmp/test_artifacts';
+
+    after(() => {
+      const path = Runner._getArtifactsPath({auditMode: artifactsPath});
+      rimraf.sync(path);
+    });
 
     it('-G gathers, quits, and doesn\'t run audits', () => {
-      const opts = {url, config: generateConfig(), driverMock, flags: {gatherMode: true}};
+      const opts = {url, config: generateConfig(), driverMock, flags: {gatherMode: artifactsPath}};
       return Runner.run(null, opts).then(_ => {
         assert.equal(loadArtifactsSpy.called, false, 'loadArtifacts was called');
 
@@ -62,7 +69,7 @@ describe('Runner', () => {
 
     // uses the files on disk from the -G test. ;)
     it('-A audits from saved artifacts and doesn\'t gather', () => {
-      const opts = {url, config: generateConfig(), driverMock, flags: {auditMode: true}};
+      const opts = {url, config: generateConfig(), driverMock, flags: {auditMode: artifactsPath}};
       return Runner.run(null, opts).then(_ => {
         assert.equal(loadArtifactsSpy.called, true, 'loadArtifacts was not called');
         assert.equal(gatherRunnerRunSpy.called, false, 'GatherRunner.run was called');
@@ -73,7 +80,7 @@ describe('Runner', () => {
 
     it('-GA is a normal run but it saves artifacts to disk', () => {
       const opts = {url, config: generateConfig(), driverMock,
-        flags: {auditMode: true, gatherMode: true}};
+        flags: {auditMode: artifactsPath, gatherMode: artifactsPath}};
       return Runner.run(null, opts).then(_ => {
         assert.equal(loadArtifactsSpy.called, false, 'loadArtifacts was called');
         assert.equal(gatherRunnerRunSpy.called, true, 'GatherRunner.run was not called');

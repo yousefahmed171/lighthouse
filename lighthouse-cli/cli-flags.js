@@ -111,7 +111,7 @@ function getFlags(manualArgv) {
         'disable-storage-reset', 'disable-device-emulation', 'disable-cpu-throttling',
         'disable-network-throttling', 'save-assets', 'list-all-audits',
         'list-trace-categories', 'perf', 'view', 'verbose', 'quiet', 'help',
-        'gather-mode', 'audit-mode', 'mixed-content',
+        'mixed-content',
       ])
       .choices('output', printer.getValidOutputOptions())
       // force as an array
