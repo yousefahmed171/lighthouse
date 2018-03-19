@@ -134,19 +134,20 @@ class Runner {
    * @param {*} connection
    * @return {!Promise<!Artifacts>}
    */
-  static _gatherArtifactsFromBrowser(opts, connection) {
+  static async _gatherArtifactsFromBrowser(opts, connection) {
     if (!opts.config.passes) {
       return Promise.reject(new Error('No browser artifacts are either provided or requested.'));
     }
 
     opts.driver = opts.driverMock || new Driver(connection);
-    return GatherRunner.run(opts.config.passes, opts).then(artifacts => {
-      const flags = opts.flags;
-      const shouldSave = flags.gatherMode;
+    const artifacts = await GatherRunner.run(opts.config.passes, opts);
+
+    const flags = opts.flags;
+    if (flags.gatherMode) {
       const path = Runner._getArtifactsPath(flags);
-      const p = shouldSave ? Runner._saveArtifacts(artifacts, path): Promise.resolve();
-      return p.then(_ => artifacts);
-    });
+      await Runner._saveArtifacts(artifacts, path);
+    }
+    return artifacts;
   }
 
   /**
