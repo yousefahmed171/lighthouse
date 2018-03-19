@@ -66,7 +66,8 @@ class Runner {
     // Gather phase
     // Either load saved artifacts off disk, from config, or get from the browser
     if (opts.flags.auditMode && !opts.flags.gatherMode) {
-      run = run.then(_ => Runner._loadArtifactsFromDisk(Runner._getArtifactsPath(opts.flags)));
+      const path = Runner._getArtifactsPath(opts.flags);
+      run = run.then(_ => Runner._loadArtifactsFromDisk(path));
     } else if (opts.config.artifacts) {
       run = run.then(_ => opts.config.artifacts);
     } else {
@@ -415,7 +416,7 @@ class Runner {
 
   /**
    * Get path to use for -G and -A modes. Defaults to $CWD/latest-run
-   * @param {*} flags
+   * @param {Flags} flags
    * @return {string}
    */
   static _getArtifactsPath(flags) {
@@ -427,5 +428,3 @@ class Runner {
 }
 
 module.exports = Runner;
-
-
