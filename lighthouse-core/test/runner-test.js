@@ -38,7 +38,7 @@ describe('Runner', () => {
     resetSpies();
   });
 
-  describe.only('Gather Mode & Audit Mode', () => {
+  describe('Gather Mode & Audit Mode', () => {
     const url = 'https://example.com';
     const generateConfig = _ => new Config({
       passes: [{
@@ -47,7 +47,7 @@ describe('Runner', () => {
       audits: ['content-width'],
     });
     const artifactsPath = '.tmp/test_artifacts';
-    const resolvedPath = Runner._getArtifactsPath({auditMode: artifactsPath});
+    const resolvedPath = path.resolve(process.cwd(), artifactsPath);
 
     after(() => {
       rimraf.sync(resolvedPath);

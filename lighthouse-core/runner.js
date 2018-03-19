@@ -72,6 +72,14 @@ class Runner {
       run = run.then(_ => opts.config.artifacts);
     } else {
       run = run.then(_ => Runner._gatherArtifactsFromBrowser(opts, connection));
+      // -G means save these to ./latest-run, etc.
+      if (opts.flags.gatherMode) {
+        run = run.then(async artifacts => {
+          const path = Runner._getArtifactsPath(opts.flags);
+          await Runner._saveArtifacts(artifacts, path);
+          return artifacts;
+        });
+      }
     }
 
     // Potentially quit early
@@ -141,14 +149,7 @@ class Runner {
     }
 
     opts.driver = opts.driverMock || new Driver(connection);
-    const artifacts = await GatherRunner.run(opts.config.passes, opts);
-
-    const flags = opts.flags;
-    if (flags.gatherMode) {
-      const path = Runner._getArtifactsPath(flags);
-      await Runner._saveArtifacts(artifacts, path);
-    }
-    return artifacts;
+    return GatherRunner.run(opts.config.passes, opts);
   }
 
   /**
@@ -421,8 +422,8 @@ class Runner {
    */
   static _getArtifactsPath(flags) {
     // This enables usage like: -GA=./custom-folder
-    if (typeof flags.auditMode === 'string') return path.join(process.cwd(), flags.auditMode);
-    if (typeof flags.gatherMode === 'string') return path.join(process.cwd(), flags.gatherMode);
+    if (typeof flags.auditMode === 'string') return path.resolve(process.cwd(), flags.auditMode);
+    if (typeof flags.gatherMode === 'string') return path.resolve(process.cwd(), flags.gatherMode);
     return path.join(process.cwd(), 'latest-run');
   }
 }
