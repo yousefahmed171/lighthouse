@@ -10,7 +10,7 @@ const Audit = require('./audit');
 const Util = require('../report/v2/renderer/util');
 const UnusedBytes = require('./byte-efficiency/byte-efficiency-audit');
 const URL = require('../lib/url-shim');
-const THRESHOLD_IN_MS = 100;
+const PRECONNECT_SOCKET_MAX_IDLE = 10;
 
 const learnMoreUrl =
   'https://developers.google.com/web/fundamentals/performance/resource-prioritization#preconnect';
@@ -24,8 +24,9 @@ class UsesRelPreconnectAudit extends Audit {
       category: 'Performance',
       name: 'uses-rel-preconnect',
       description: 'Avoid multiple, costly round trips to any origin',
-      helpText: 'Consider using<link rel=preconnect> to set up early connections before ' +
-        'an HTTP request is actually sent to the server. This will reduce multiple, ' +
+      informative: true,
+      helpText: 'Consider using<link rel="preconnect dns-prefetch"> to set up early connections ' +
+        ' before an HTTP request is actually sent to the server. This will reduce multiple, ' +
         `costly round trips to any origin. [Learn more](${learnMoreUrl}).`,
       requiredArtifacts: ['devtoolsLogs'],
       scoringMode: Audit.SCORING_MODES.NUMERIC,
@@ -33,65 +34,80 @@ class UsesRelPreconnectAudit extends Audit {
   }
 
   /**
+   * Check is the connection is already open
+   * @param {!WebInspector.NetworkRequest} record
+   * @return {!boolean}
+   */
+  static hasAlreadyConnectedToOrigin(record) {
+    return record.timing && record.timing.dnsEnd - record.timing.dnsStart === 0 &&
+      record.timing.connectEnd - record.timing.connectStart === 0;
+  }
+
+  /**
    * @param {!Artifacts} artifacts
    * @return {!AuditResult}
    */
-  static audit(artifacts) {
+  static async audit(artifacts) {
     const devtoolsLogs = artifacts.devtoolsLogs[UsesRelPreconnectAudit.DEFAULT_PASS];
     let maxWasted = 0;
 
-    return Promise.all([
+    const [networkRecords, mainResource] = await Promise.all([
       artifacts.requestNetworkRecords(devtoolsLogs),
       artifacts.requestMainResource(devtoolsLogs),
-    ]).then(([networkRecords, mainResource]) => {
-      const mainResourceOrigin = new URL(mainResource.url).origin;
-      const tmpFoundOrigins = [];
-      const filteredRecords = networkRecords.filter(record => {
+    ]);
+
+    const preconnectResults = {};
+    networkRecords
+      // filter out all resources that have a different origin
+      .filter(record => !URL.originsMatch(mainResource.url, record.url))
+      // filter out all resources that are not loaded by the document
+      .filter(record => {
+        return record.initiatorRequest() !== mainResource && record !== mainResource;
+      // filter out urls that do not have an origin
+      }).filter(record => {
+        return !!URL.getOrigin(record.url);
+      // filter out all resources where origins are already resolved
+      }).filter(record => {
+        return !UsesRelPreconnectAudit.hasAlreadyConnectedToOrigin(record);
+      }).forEach(record => {
         const requestDelay = record._startTime - mainResource._endTime;
-        const recordOrigin = new URL(record.url).origin;
-        if (!recordOrigin) {
-          return false;
+        const recordOrigin = URL.getOrigin(record.url);
+
+        if (preconnectResults[recordOrigin]) {
+          return;
         }
 
-        const alreadyListed = tmpFoundOrigins.indexOf(recordOrigin) > -1;
-
-        const result = !alreadyListed && requestDelay > 0 && requestDelay < 10 &&
-          record.timing && record.timing.connectEnd > -1 && record.timing.dnsStart > -1 &&
-          recordOrigin !== mainResourceOrigin;
-
-        if (result) {
-          tmpFoundOrigins.push(recordOrigin);
+        // make sure the requests are below the PRECONNECT_SOCKET_MAX_IDLE (10s) mark
+        if (Math.max(0, requestDelay) < PRECONNECT_SOCKET_MAX_IDLE) {
+          preconnectResults[recordOrigin] = record;
         }
-
-        return result;
       });
 
-      const results = filteredRecords.map(record => {
-        const wastedMs = record.timing.connectEnd - record.timing.dnsStart;
-        maxWasted = Math.max(wastedMs, maxWasted);
-
-        return {
-          url: new URL(record.url).origin,
-          wastedMs: Util.formatMilliseconds(wastedMs),
-        };
-      });
-
-      const headings = [
-        {key: 'url', itemType: 'url', text: 'URL'},
-        {key: 'wastedMs', itemType: 'text', text: 'Potential Savings'},
-      ];
-      const details = Audit.makeTableDetails(headings, results);
+    const results = Object.values(preconnectResults).map(record => {
+      const wastedMs = record.timing.connectEnd - record.timing.dnsStart;
+      maxWasted = Math.max(wastedMs, maxWasted);
 
       return {
-        score: UnusedBytes.scoreForWastedMs(maxWasted),
-        rawValue: maxWasted,
-        displayValue: Util.formatMilliseconds(maxWasted),
-        extendedInfo: {
-          value: results,
-        },
-        details,
+        url: new URL(record.url).origin,
+        wastedMs: Util.formatMilliseconds(wastedMs),
       };
     });
+
+    const headings = [
+      {key: 'url', itemType: 'url', text: 'URL'},
+      {key: 'wastedMs', itemType: 'text', text: 'Potential Savings'},
+    ];
+    const details = Audit.makeTableDetails(headings, results);
+
+    return {
+      score: UnusedBytes.scoreForWastedMs(maxWasted),
+      rawValue: maxWasted,
+      displayValue: Util.formatMilliseconds(maxWasted),
+      extendedInfo: {
+        value: results,
+      },
+      details,
+    };
   }
 }
 
