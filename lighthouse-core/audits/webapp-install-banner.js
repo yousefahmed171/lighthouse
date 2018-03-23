@@ -53,7 +53,8 @@ class WebappInstallBanner extends MultiCheckAudit {
 
     const bannerCheckIds = [
       'hasName',
-      'hasShortName',
+      // short_name isn't required (if name is defined):
+      //   https://cs.chromium.org/chromium/src/chrome/browser/installable/installable_manager.cc?type=cs&q=IsManifestValidForWebApp+f:cc+-f:test&sq=package:chromium&l=473
       'hasStartUrl',
       'hasPWADisplayValue',
       'hasIconsAtLeast192px',
