@@ -27,7 +27,8 @@ class UsesRelPreconnectAudit extends Audit {
       name: 'uses-rel-preconnect',
       description: 'Avoid multiple, costly round trips to any origin',
       informative: true,
-      helpText: 'Consider using<link rel="preconnect dns-prefetch"> to set up early connections ' +
+      helpText:
+        'Consider using<link rel="preconnect dns-prefetch"> to set up early connections ' +
         ' before an HTTP request is actually sent to the server. This will reduce multiple, ' +
         `costly round trips to any origin. [Learn more](${learnMoreUrl}).`,
       requiredArtifacts: ['devtoolsLogs'],
@@ -41,8 +42,11 @@ class UsesRelPreconnectAudit extends Audit {
    * @return {!boolean}
    */
   static hasAlreadyConnectedToOrigin(record) {
-    return record.timing && record.timing.dnsEnd - record.timing.dnsStart === 0 &&
-      record.timing.connectEnd - record.timing.connectStart === 0;
+    return (
+      record.timing &&
+      record.timing.dnsEnd - record.timing.dnsStart === 0 &&
+      record.timing.connectEnd - record.timing.connectStart === 0
+    );
   }
 
   /**
@@ -69,19 +73,20 @@ class UsesRelPreconnectAudit extends Audit {
     ]);
 
     const origins = networkRecords
-      .filter(
-        record => {
-          // filter out all resources that have the same origin
-          return !URL.originsMatch(mainResource.url, record.url) &&
-            // filter out all resources that are loaded by the document
-            record.initiatorRequest() !== mainResource &&
-            // filter out urls that do not have an origin (data, ...)
-            !!URL.getOrigin(record.url) &&
-            // filter out all resources where origins are already resolved
-            !UsesRelPreconnectAudit.hasAlreadyConnectedToOrigin(record) &&
-            // make sure the requests are below the PRECONNECT_SOCKET_MAX_IDLE (15s) mark
-            UsesRelPreconnectAudit.socketStartTimeIsBelowThreshold(record, mainResource)
-        })
+      .filter(record => {
+        // filter out all resources that have the same origin
+        return (
+          !URL.originsMatch(mainResource.url, record.url) &&
+          // filter out all resources that are loaded by the document
+          record.initiatorRequest() !== mainResource &&
+          // filter out urls that do not have an origin (data, ...)
+          !!URL.getOrigin(record.url) &&
+          // filter out all resources where origins are already resolved
+          !UsesRelPreconnectAudit.hasAlreadyConnectedToOrigin(record) &&
+          // make sure the requests are below the PRECONNECT_SOCKET_MAX_IDLE (15s) mark
+          UsesRelPreconnectAudit.socketStartTimeIsBelowThreshold(record, mainResource)
+        );
+      })
       .map(record => URL.getOrigin(record.url));
 
     const preconnectOrigins = new Set(origins);

@@ -158,7 +158,9 @@ describe('Performance: uses-rel-preconnect audit', () => {
     const {rawValue, extendedInfo} = await UsesRelPreconnect.audit(artifacts);
     assert.equal(rawValue, 200);
     assert.equal(extendedInfo.value.length, 1);
-    assert.deepStrictEqual(extendedInfo.value, [{url: 'https://cdn.example.com', wastedMs: Util.formatMilliseconds(200)}]);
+    assert.deepStrictEqual(extendedInfo.value, [
+      {url: 'https://cdn.example.com', wastedMs: Util.formatMilliseconds(200)},
+    ]);
   });
 
   it(`should give a list of preconnected origins`, async () => {
