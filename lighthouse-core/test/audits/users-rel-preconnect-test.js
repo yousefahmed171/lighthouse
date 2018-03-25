@@ -136,6 +136,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
         _startTime: 2,
         timing: {
           dnsStart: 100,
+          connectStart: 150,
           connectEnd: 300,
         },
       },
@@ -145,6 +146,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
         _startTime: 3,
         timing: {
           dnsStart: 300,
+          connectStart: 350,
           connectEnd: 400,
         },
       },
@@ -172,16 +174,18 @@ describe('Performance: uses-rel-preconnect audit', () => {
         _startTime: 2,
         timing: {
           dnsStart: 100,
+          connectStart: 250,
           connectEnd: 300,
         },
       },
       {
         url: 'https://othercdn.example.com/second',
         initiatorRequest: () => null,
-        _startTime: 3,
+        _startTime: 1.2,
         timing: {
-          dnsStart: 300,
-          connectEnd: 400,
+          dnsStart: 100,
+          connectStart: 200,
+          connectEnd: 600,
         },
       },
     ];
@@ -192,11 +196,11 @@ describe('Performance: uses-rel-preconnect audit', () => {
     };
 
     const {rawValue, extendedInfo} = await UsesRelPreconnect.audit(artifacts);
-    assert.equal(rawValue, 200);
+    assert.equal(rawValue, 400);
     assert.equal(extendedInfo.value.length, 2);
     assert.deepStrictEqual(extendedInfo.value, [
       {url: 'https://cdn.example.com', wastedMs: Util.formatMilliseconds(200)},
-      {url: 'https://othercdn.example.com', wastedMs: Util.formatMilliseconds(100)},
+      {url: 'https://othercdn.example.com', wastedMs: Util.formatMilliseconds(400)},
     ]);
   });
 });

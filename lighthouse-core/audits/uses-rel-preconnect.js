@@ -106,7 +106,14 @@ class UsesRelPreconnectAudit extends Audit {
         }
       });
 
-      const wastedMs = firstRecordOfOrigin.timing.connectEnd - firstRecordOfOrigin.timing.dnsStart;
+      const connectionTime =
+        firstRecordOfOrigin.timing.connectEnd - firstRecordOfOrigin.timing.dnsStart;
+      const timeBetweenMainResourceAndConnectStart =
+        firstRecordOfOrigin._startTime * 1000 -
+        mainResource._endTime * 1000 +
+        firstRecordOfOrigin.timing.connectStart;
+      // calculate delta between connectionTime and timeToConnectionStart from main resource
+      const wastedMs = Math.min(connectionTime, timeBetweenMainResourceAndConnectStart);
       maxWasted = Math.max(wastedMs, maxWasted);
       results.push({
         url: new URL(firstRecordOfOrigin.url).origin,
