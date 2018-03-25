@@ -101,7 +101,7 @@ class DetailsRenderer {
     try {
       const parsed = Util.parseURL(url);
       displayedPath = parsed.file;
-      displayedHost = `(${parsed.hostname})`;
+      displayedHost = parsed.hostname ? `(${parsed.hostname})` : '';
       title = url;
     } catch (/** @type {!Error} */ e) {
       if (!(e instanceof TypeError)) {

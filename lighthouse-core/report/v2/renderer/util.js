@@ -198,11 +198,15 @@ class Util {
   /**
    * Split a URL into a file and hostname for easy display.
    * @param {string} url
-   * @return {{file: string, hostname: string}}
+   * @return {{file: string, hostname: string=}}
    */
   static parseURL(url) {
     const parsedUrl = new URL(url);
-    return {file: Util.getURLDisplayName(parsedUrl), hostname: parsedUrl.hostname};
+    if (parsedUrl.pathname === '/') {
+      return {file: parsedUrl.origin};
+    } else {
+      return {file: Util.getURLDisplayName(parsedUrl), hostname: parsedUrl.hostname};
+    }
   }
 
   /**
