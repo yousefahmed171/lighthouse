@@ -106,13 +106,13 @@ describe('Performance: uses-rel-preconnect audit', () => {
     assert.equal(details.items.length, 0);
   });
 
-  it(`shouldn't suggest preconnect when request has been fired after 10s`, async () => {
+  it(`shouldn't suggest preconnect when request has been fired after 15s`, async () => {
     const networkRecords = [
       mainResourceRecord,
       {
         url: 'https://cdn.example.com/request',
         initiatorRequest: () => null,
-        _startTime: 11,
+        _startTime: 16,
       },
     ];
     const artifacts = {

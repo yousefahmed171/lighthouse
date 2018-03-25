@@ -10,7 +10,10 @@ const Audit = require('./audit');
 const Util = require('../report/v2/renderer/util');
 const UnusedBytes = require('./byte-efficiency/byte-efficiency-audit');
 const URL = require('../lib/url-shim');
-const PRECONNECT_SOCKET_MAX_IDLE = 10;
+// Preconnect establishes a "clean" socket. Chrome's socket manager will keep an unused socket
+// around for 10s. Meaning, the time delta between processing preconnect a request should be <10s,
+// otherwise it's wasted. We add a 5s margin so we are sure to capture all key requests.
+const PRECONNECT_SOCKET_MAX_IDLE = 15;
 
 const learnMoreUrl =
   'https://developers.google.com/web/fundamentals/performance/resource-prioritization#preconnect';
@@ -21,7 +24,6 @@ class UsesRelPreconnectAudit extends Audit {
    */
   static get meta() {
     return {
-      category: 'Performance',
       name: 'uses-rel-preconnect',
       description: 'Avoid multiple, costly round trips to any origin',
       informative: true,
@@ -29,7 +31,7 @@ class UsesRelPreconnectAudit extends Audit {
         ' before an HTTP request is actually sent to the server. This will reduce multiple, ' +
         `costly round trips to any origin. [Learn more](${learnMoreUrl}).`,
       requiredArtifacts: ['devtoolsLogs'],
-      scoringMode: Audit.SCORING_MODES.NUMERIC,
+      scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
     };
   }
 
@@ -41,6 +43,16 @@ class UsesRelPreconnectAudit extends Audit {
   static hasAlreadyConnectedToOrigin(record) {
     return record.timing && record.timing.dnsEnd - record.timing.dnsStart === 0 &&
       record.timing.connectEnd - record.timing.connectStart === 0;
+  }
+
+  /**
+   * Check is the connection has started before the socket idle time
+   * @param {!WebInspector.NetworkRequest} record
+   * @param {!WebInspector.NetworkRequest} mainResource
+   * @return {!boolean}
+   */
+  static socketStartTimeIsBelowThreshold(record, mainResource) {
+    return Math.max(0, record._startTime - mainResource._endTime) < PRECONNECT_SOCKET_MAX_IDLE;
   }
 
   /**
@@ -56,48 +68,53 @@ class UsesRelPreconnectAudit extends Audit {
       artifacts.requestMainResource(devtoolsLogs),
     ]);
 
-    const preconnectResults = {};
-    networkRecords
-      // filter out all resources that have a different origin
-      .filter(record => !URL.originsMatch(mainResource.url, record.url))
-      // filter out all resources that are not loaded by the document
-      .filter(record => {
-        return record.initiatorRequest() !== mainResource && record !== mainResource;
-      // filter out urls that do not have an origin
-      }).filter(record => {
-        return !!URL.getOrigin(record.url);
-      // filter out all resources where origins are already resolved
-      }).filter(record => {
-        return !UsesRelPreconnectAudit.hasAlreadyConnectedToOrigin(record);
-      }).forEach(record => {
-        const requestDelay = record._startTime - mainResource._endTime;
-        const recordOrigin = URL.getOrigin(record.url);
+    const origins = networkRecords
+      .filter(
+        record => {
+          // filter out all resources that have the same origin
+          return !URL.originsMatch(mainResource.url, record.url) &&
+            // filter out all resources that are loaded by the document
+            record.initiatorRequest() !== mainResource &&
+            // filter out urls that do not have an origin (data, ...)
+            !!URL.getOrigin(record.url) &&
+            // filter out all resources where origins are already resolved
+            !UsesRelPreconnectAudit.hasAlreadyConnectedToOrigin(record) &&
+            // make sure the requests are below the PRECONNECT_SOCKET_MAX_IDLE (15s) mark
+            UsesRelPreconnectAudit.socketStartTimeIsBelowThreshold(record, mainResource)
+        })
+      .map(record => URL.getOrigin(record.url));
 
-        if (preconnectResults[recordOrigin]) {
-          return;
-        }
+    const preconnectOrigins = new Set(origins);
+    const results = [];
+    preconnectOrigins.forEach(origin => {
+      const records = networkRecords.filter(record => URL.getOrigin(record.url) === origin);
+      if (!records.length) {
+        return;
+      }
 
-        // make sure the requests are below the PRECONNECT_SOCKET_MAX_IDLE (10s) mark
-        if (Math.max(0, requestDelay) < PRECONNECT_SOCKET_MAX_IDLE) {
-          preconnectResults[recordOrigin] = record;
+      // Sometimes requests are done simultaneous and the connection has not been made
+      // chrome will try to connect for each network record, we get the first record
+      let firstRecordOfOrigin;
+      records.forEach(record => {
+        if (!firstRecordOfOrigin || record._startTime < firstRecordOfOrigin._startTime) {
+          firstRecordOfOrigin = record;
         }
       });
 
-    const results = Object.values(preconnectResults).map(record => {
-      const wastedMs = record.timing.connectEnd - record.timing.dnsStart;
+      const wastedMs = firstRecordOfOrigin.timing.connectEnd - firstRecordOfOrigin.timing.dnsStart;
       maxWasted = Math.max(wastedMs, maxWasted);
-
-      return {
-        url: new URL(record.url).origin,
+      results.push({
+        url: new URL(firstRecordOfOrigin.url).origin,
         wastedMs: Util.formatMilliseconds(wastedMs),
-      };
+      });
     });
 
     const headings = [
-      {key: 'url', itemType: 'url', text: 'URL'},
+      {key: 'url', itemType: 'url', text: 'Origin'},
       {key: 'wastedMs', itemType: 'text', text: 'Potential Savings'},
     ];
-    const details = Audit.makeTableDetails(headings, results);
+    const summary = {wastedMs: maxWasted};
+    const details = Audit.makeTableDetails(headings, results, summary);
 
     return {
       score: UnusedBytes.scoreForWastedMs(maxWasted),
