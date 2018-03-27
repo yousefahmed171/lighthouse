@@ -16,14 +16,11 @@ const mainResource = {
   url: 'https://www.example.com/',
   _endTime: 1,
 };
-const mainResourceRecord = {
-  url: 'https://www.example.com/',
-};
 
 describe('Performance: uses-rel-preconnect audit', () => {
   it(`shouldn't suggest preconnect for same origin`, async () => {
     const networkRecords = [
-      mainResourceRecord,
+      mainResource,
       {
         url: 'https://www.example.com/request',
       },
@@ -42,7 +39,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
 
   it(`shouldn't suggest preconnect when initiator is main resource`, async () => {
     const networkRecords = [
-      mainResourceRecord,
+      mainResource,
       {
         url: 'https://cdn.example.com/request',
         initiatorRequest: () => mainResource,
@@ -62,7 +59,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
 
   it(`shouldn't suggest non http(s) protocols as preconnect`, async () => {
     const networkRecords = [
-      mainResourceRecord,
+      mainResource,
       {
         url: 'data:text/plain;base64,hello',
         initiatorRequest: () => null,
@@ -82,7 +79,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
 
   it(`shouldn't suggest preconnect when already connected to the origin`, async () => {
     const networkRecords = [
-      mainResourceRecord,
+      mainResource,
       {
         url: 'https://cdn.example.com/request',
         initiatorRequest: () => null,
@@ -108,7 +105,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
 
   it(`shouldn't suggest preconnect when request has been fired after 15s`, async () => {
     const networkRecords = [
-      mainResourceRecord,
+      mainResource,
       {
         url: 'https://cdn.example.com/request',
         initiatorRequest: () => null,
@@ -129,7 +126,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
 
   it(`should only list an origin once`, async () => {
     const networkRecords = [
-      mainResourceRecord,
+      mainResource,
       {
         url: 'https://cdn.example.com/first',
         initiatorRequest: () => null,
@@ -167,7 +164,7 @@ describe('Performance: uses-rel-preconnect audit', () => {
 
   it(`should give a list of preconnected origins`, async () => {
     const networkRecords = [
-      mainResourceRecord,
+      mainResource,
       {
         url: 'https://cdn.example.com/first',
         initiatorRequest: () => null,
@@ -196,11 +193,11 @@ describe('Performance: uses-rel-preconnect audit', () => {
     };
 
     const {rawValue, extendedInfo} = await UsesRelPreconnect.audit(artifacts);
-    assert.equal(rawValue, 400);
+    assert.equal(rawValue, 300);
     assert.equal(extendedInfo.value.length, 2);
     assert.deepStrictEqual(extendedInfo.value, [
       {url: 'https://cdn.example.com', wastedMs: Util.formatMilliseconds(200)},
-      {url: 'https://othercdn.example.com', wastedMs: Util.formatMilliseconds(400)},
+      {url: 'https://othercdn.example.com', wastedMs: Util.formatMilliseconds(300)},
     ]);
   });
 });

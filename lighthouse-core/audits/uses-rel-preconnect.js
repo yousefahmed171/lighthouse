@@ -13,6 +13,7 @@ const URL = require('../lib/url-shim');
 // Preconnect establishes a "clean" socket. Chrome's socket manager will keep an unused socket
 // around for 10s. Meaning, the time delta between processing preconnect a request should be <10s,
 // otherwise it's wasted. We add a 5s margin so we are sure to capture all key requests.
+// @see https://github.com/GoogleChrome/lighthouse/issues/3106#issuecomment-333653747
 const PRECONNECT_SOCKET_MAX_IDLE = 15;
 
 const learnMoreUrl =
@@ -28,9 +29,8 @@ class UsesRelPreconnectAudit extends Audit {
       description: 'Avoid multiple, costly round trips to any origin',
       informative: true,
       helpText:
-        'Consider using<link rel="preconnect dns-prefetch"> to set up early connections ' +
-        ' before an HTTP request is actually sent to the server. This will reduce multiple, ' +
-        `costly round trips to any origin. [Learn more](${learnMoreUrl}).`,
+        'Consider adding preconnect or dns-prefetch resource hints to establish early ' +
+        `connections to important third-party origins. [Learn more](${learnMoreUrl}).`,
       requiredArtifacts: ['devtoolsLogs'],
       scoreDisplayMode: Audit.SCORING_MODES.NUMERIC,
     };
@@ -74,8 +74,8 @@ class UsesRelPreconnectAudit extends Audit {
 
     const origins = networkRecords
       .filter(record => {
-        // filter out all resources that have the same origin
         return (
+          // filter out all resources that have the same origin
           !URL.originsMatch(mainResource.url, record.url) &&
           // filter out all resources that are loaded by the document
           record.initiatorRequest() !== mainResource &&
@@ -93,9 +93,6 @@ class UsesRelPreconnectAudit extends Audit {
     const results = [];
     preconnectOrigins.forEach(origin => {
       const records = networkRecords.filter(record => URL.getOrigin(record.url) === origin);
-      if (!records.length) {
-        return;
-      }
 
       // Sometimes requests are done simultaneous and the connection has not been made
       // chrome will try to connect for each network record, we get the first record
@@ -108,12 +105,11 @@ class UsesRelPreconnectAudit extends Audit {
 
       const connectionTime =
         firstRecordOfOrigin.timing.connectEnd - firstRecordOfOrigin.timing.dnsStart;
-      const timeBetweenMainResourceAndConnectStart =
+      const timeBetweenMainResourceAndDnsStart =
         firstRecordOfOrigin._startTime * 1000 -
         mainResource._endTime * 1000 +
-        firstRecordOfOrigin.timing.connectStart;
-      // calculate delta between connectionTime and timeToConnectionStart from main resource
-      const wastedMs = Math.min(connectionTime, timeBetweenMainResourceAndConnectStart);
+        firstRecordOfOrigin.timing.dnsStart;
+      const wastedMs = Math.min(connectionTime, timeBetweenMainResourceAndDnsStart);
       maxWasted = Math.max(wastedMs, maxWasted);
       results.push({
         url: new URL(firstRecordOfOrigin.url).origin,
