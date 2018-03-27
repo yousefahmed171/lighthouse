@@ -95,7 +95,7 @@ describe('DetailsRenderer', () => {
 
     // Main request
     assert.equal(chains.length, 4, 'generates correct number of chain nodes');
-    assert.equal(chains[0].querySelector('.crc-node__tree-hostname').textContent, '');
+    assert.equal(chains[0].querySelector('.crc-node__tree-hostname').textContent, '(example.com)');
 
     // Children
     assert.ok(chains[1].querySelector('.crc-node__tree-marker .vert-right'));
