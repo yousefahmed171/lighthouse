@@ -16,7 +16,7 @@ if [ -n "$CI" ] || [ -n "$FORCE_NYC" ]; then
 fi
 
 function _runmocha() {
-  $cmd mocha --reporter dot $2 $(find $1/test -name '*-test.js');
+  $cmd mocha --reporter dot $2 "$1/test/**/*-test.js";
 }
 
 if [ "$flag" == '--watch' ]; then
