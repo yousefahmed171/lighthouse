@@ -145,6 +145,7 @@
   "nyc": {
     "exclude": [
       "**/third_party/**",
+      "**/test/",
       "lighthouse-extension/"
     ]
   },
