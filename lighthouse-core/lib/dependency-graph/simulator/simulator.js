@@ -44,10 +44,10 @@ class Simulator {
 
     this._rtt = this._options.rtt;
     this._throughput = this._options.throughput;
-    this._maximumConcurrentRequests = Math.min(
+    this._maximumConcurrentRequests = Math.max(Math.min(
       TcpConnection.maximumSaturatedConnections(this._rtt, this._throughput),
       this._options.maximumConcurrentRequests
-    );
+    ), 1);
     this._cpuSlowdownMultiplier = this._options.cpuSlowdownMultiplier;
     this._layoutTaskMultiplier = this._cpuSlowdownMultiplier * this._options.layoutTaskMultiplier;
 

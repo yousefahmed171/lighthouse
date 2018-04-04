@@ -6,6 +6,7 @@
 'use strict';
 
 const ComputedArtifact = require('./computed-artifact');
+const constants = require('../../config/constants');
 const Simulator = require('../../lib/dependency-graph/simulator/simulator');
 
 class SimulatorArtifact extends ComputedArtifact {
@@ -17,7 +18,7 @@ class SimulatorArtifact extends ComputedArtifact {
    * @param {{devtoolsLog: Array, settings: LH.ConfigSettings|undefined}} data
    * @param {!Artifacts} artifacts
    * @return {!Promise}
-  */
+   */
   async compute_(data, artifacts) {
     const {throttlingMethod, throttling} = data.settings || {};
     const networkAnalysis = await artifacts.requestNetworkAnalysis(data.devtoolsLog);
@@ -28,18 +29,25 @@ class SimulatorArtifact extends ComputedArtifact {
     };
 
     switch (throttlingMethod) {
-      case 'devtools':
       case 'provided':
+        options.rtt = networkAnalysis.rtt;
+        options.throughput = networkAnalysis.throughput;
+        options.cpuSlowdownMultiplier = 1;
+        options.layoutTaskMultiplier = 1;
+        break;
+      case 'devtools':
         if (throttling) {
-          // TODO(phulce): update this to use the constants when #4894 lands
-          options.rtt = throttling.requestLatency / 3.75;
-          options.throughput = throttling.downloadThroughputKbps * 1024;
+          options.rtt =
+            throttling.requestLatencyMs / constants.throttling.DEVTOOLS_RTT_ADJUSTMENT_FACTOR;
+          options.throughput =
+            throttling.downloadThroughputKbps * 1024 /
+            constants.throttling.DEVTOOLS_THROUGHPUT_ADJUSTMENT_FACTOR;
         }
 
         options.cpuSlowdownMultiplier = 1;
         options.layoutTaskMultiplier = 1;
         break;
-      case 'lantern':
+      case 'simulate':
         if (throttling) {
           options.rtt = throttling.rttMs;
           options.throughput = throttling.throughputKbps * 1024;

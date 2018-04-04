@@ -180,7 +180,8 @@ describe('Byte efficiency base audit', () => {
   });
 
   it('should work on real graphs', async () => {
-    const settings = {throttlingMethod: 'provided'};
+    const throttling = {rttMs: 150, throughputKbps: 1600, cpuSlowdownMultiplier: 1};
+    const settings = {throttlingMethod: 'simulate', throttling};
     const artifacts = Runner.instantiateComputedArtifacts();
     const graph = await artifacts.requestPageDependencyGraph({trace, devtoolsLog});
     const simulator = await artifacts.requestSimulator({devtoolsLog, settings});
