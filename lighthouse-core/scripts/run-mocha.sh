@@ -8,8 +8,15 @@
 
 flag=$1
 
+# Coverage will only be evaluated in CI or if you run `yarn coverage`
+# If you're manually running that, you may want to do this after:
+#    npx nyc report --reporter=html
+if [ -n "$CI" ] || [ -n "$FORCE_NYC" ]; then
+  cmd=nyc
+fi
+
 function _runmocha() {
-  mocha --reporter dot $2 $(find $1/test -name '*-test.js');
+  $cmd mocha --reporter dot $2 $(find $1/test -name '*-test.js');
 }
 
 if [ "$flag" == '--watch' ]; then
