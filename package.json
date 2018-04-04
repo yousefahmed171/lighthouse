@@ -39,7 +39,7 @@
     "watch": "yarn unit-core --watch",
 
     "unit:silentcoverage": "nyc --silent yarn unit",
-    "coverage": "nyc yarn unit",
+    "coverage": "nyc yarn unit && nyc report --reporter html",
     "coveralls": "nyc report --reporter lcovonly && cat ./coverage/lcov.info | coveralls && codecov",
 
     "closure": "cd lighthouse-core && node closure/closure-type-checking.js",
