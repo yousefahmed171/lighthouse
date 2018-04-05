@@ -6,6 +6,7 @@
 // @ts-nocheck
 'use strict';
 
+const isDeepEqual = require('lodash.isequal');
 const Driver = require('./gather/driver.js');
 const GatherRunner = require('./gather/gather-runner');
 const ReportScoring = require('./scoring');
@@ -177,6 +178,17 @@ class Runner {
     artifacts = Object.assign(Runner.instantiateComputedArtifacts(),
         artifacts || opts.config.artifacts);
 
+    if (artifacts.settings) {
+      const overrides = {gatherMode: undefined, auditMode: undefined};
+      const normalizedGatherSettings = Object.assign({}, artifacts.settings, overrides);
+      const normalizedAuditSettings = Object.assign({}, opts.settings, overrides);
+
+      // TODO(phulce): allow change of throttling method to `simulate`
+      if (!isDeepEqual(normalizedGatherSettings, normalizedAuditSettings)) {
+        throw new Error('Cannot change settings between gathering and auditing');
+      }
+    }
+
     // Run each audit sequentially
     const auditResults = [];
     let promise = Promise.resolve();
@@ -204,7 +216,7 @@ class Runner {
    * Otherwise returns error audit result.
    * @param {!Audit} audit
    * @param {!Artifacts} artifacts
-   * @param {*} opts
+   * @param {{settings: LH.ConfigSettings}} opts
    * @return {!Promise<!AuditResult>}
    * @private
    */

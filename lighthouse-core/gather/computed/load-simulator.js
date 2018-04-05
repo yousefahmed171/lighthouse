@@ -9,9 +9,9 @@ const ComputedArtifact = require('./computed-artifact');
 const constants = require('../../config/constants');
 const Simulator = require('../../lib/dependency-graph/simulator/simulator');
 
-class SimulatorArtifact extends ComputedArtifact {
+class LoadSimulatorArtifact extends ComputedArtifact {
   get name() {
-    return 'Simulator';
+    return 'LoadSimulator';
   }
 
   /**
@@ -63,4 +63,4 @@ class SimulatorArtifact extends ComputedArtifact {
   }
 }
 
-module.exports = SimulatorArtifact;
+module.exports = LoadSimulatorArtifact;

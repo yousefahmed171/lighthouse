@@ -77,7 +77,7 @@ class LanternMetricArtifact extends ComputedArtifact {
     const traceOfTab = await artifacts.requestTraceOfTab(trace);
     // TODO(phulce): passthrough settings once all metrics are converted to computed artifacts
     /** @type {Simulator} */
-    const simulator = await artifacts.requestSimulator({devtoolsLog});
+    const simulator = await artifacts.requestLoadSimulator({devtoolsLog});
 
     const optimisticGraph = this.getOptimisticGraph(graph, traceOfTab);
     const pessimisticGraph = this.getPessimisticGraph(graph, traceOfTab);

@@ -184,7 +184,7 @@ describe('Byte efficiency base audit', () => {
     const settings = {throttlingMethod: 'simulate', throttling};
     const artifacts = Runner.instantiateComputedArtifacts();
     const graph = await artifacts.requestPageDependencyGraph({trace, devtoolsLog});
-    const simulator = await artifacts.requestSimulator({devtoolsLog, settings});
+    const simulator = await artifacts.requestLoadSimulator({devtoolsLog, settings});
     const result = ByteEfficiencyAudit.createAuditResult(
       {
         headings: [{key: 'value', text: 'Label'}],

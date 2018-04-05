@@ -15,7 +15,7 @@ describe('Simulator artifact', () => {
   it('returns a simulator for "provided" throttling', async () => {
     const artifacts = Runner.instantiateComputedArtifacts();
 
-    const simulator = await artifacts.requestSimulator({
+    const simulator = await artifacts.requestLoadSimulator({
       devtoolsLog,
       settings: {throttlingMethod: 'provided'},
     });
@@ -30,7 +30,7 @@ describe('Simulator artifact', () => {
     const artifacts = Runner.instantiateComputedArtifacts();
 
     const throttling = {requestLatencyMs: 375, downloadThroughputKbps: 900};
-    const simulator = await artifacts.requestSimulator({
+    const simulator = await artifacts.requestLoadSimulator({
       devtoolsLog,
       settings: {throttlingMethod: 'devtools', throttling},
     });
@@ -45,7 +45,7 @@ describe('Simulator artifact', () => {
     const artifacts = Runner.instantiateComputedArtifacts();
 
     const throttling = {rttMs: 120, throughputKbps: 1000, cpuSlowdownMultiplier: 3};
-    const simulator = await artifacts.requestSimulator({
+    const simulator = await artifacts.requestLoadSimulator({
       devtoolsLog,
       settings: {throttlingMethod: 'simulate', throttling},
     });
