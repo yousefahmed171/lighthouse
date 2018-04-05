@@ -28,18 +28,19 @@ before_test:
   - set "PATH=C:\MinGW\msys\1.0\bin;%PATH%"
   - set "LIGHTHOUSE_CHROMIUM_PATH=%CD%\chrome-win32\chrome.exe"
   - bash ./lighthouse-core/scripts/download-chrome.sh
-  - yarn build-all
+  # - yarn build-all
 
 test_script:
   - node --version
   - npm --version
   - yarn --version
   - which yarn
-  - yarn lint
-  - yarn unit
-  - yarn type-check
-  - yarn smoke
-  - yarn smokehouse
+  # - yarn lint
+  # - yarn unit
+  # - yarn type-check
+  # - yarn smoke
+  # - yarn smokehouse
+  - bash ./lighthouse-cli/test/smokehouse/byte-efficiency/run-tests.sh
 
 cache:
   #- chrome-win32 -> appveyor.yml,package.json

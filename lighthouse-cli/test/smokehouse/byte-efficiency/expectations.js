@@ -53,7 +53,7 @@ module.exports = [
         extendedInfo: {
           value: {
             wastedKb: '>=25',
-            wastedMs: '>500',
+            wastedMs: '>300',
             results: {
               length: 2,
             },
@@ -61,9 +61,9 @@ module.exports = [
         },
       },
       'offscreen-images': {
-        score: '<1', // big enough savings to interfere with download of script.js
         extendedInfo: {
           value: {
+            wastedKb: '>70',
             results: [
               {
                 url: /lighthouse-unoptimized.jpg$/,
@@ -79,11 +79,9 @@ module.exports = [
         },
       },
       'uses-webp-images': {
-        score: '<1', // big enough savings to interfere with download of script.js
         extendedInfo: {
           value: {
             wastedKb: '>60',
-            wastedMs: '>200',
             results: {
               length: 4,
             },
@@ -91,6 +89,7 @@ module.exports = [
         },
       },
       'uses-text-compression': {
+        score: '<1',
         extendedInfo: {
           value: {
             wastedMs: '>700',
@@ -115,7 +114,6 @@ module.exports = [
         extendedInfo: {
           value: {
             wastedKb: '>50',
-            wastedMs: '>100',
             results: {
               length: 3,
             },
