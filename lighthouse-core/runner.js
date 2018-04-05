@@ -247,6 +247,8 @@ class Runner {
           throw error;
         }
       }
+      console.log('===============================')
+      console.log('running', audit.meta.name)
       // all required artifacts are in good shape, so we proceed
       return audit.audit(artifacts, {options: auditDefn.options || {}});
     // Fill remaining audit result fields.

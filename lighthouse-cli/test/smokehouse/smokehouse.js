@@ -87,6 +87,11 @@ function runLighthouse(url, configPath, isDebug) {
     process.exit(runResults.status);
   }
 
+  if (isDebug || process.env.SMOKEHOUSE_DEBUG) {
+    console.log(`STDOUT: ${runResults.stdout}`);
+    console.error(`STDERR: ${runResults.stderr}`);
+  }
+
   return JSON.parse(fs.readFileSync('smokehouse.report.json', 'utf8'));
 }
 
