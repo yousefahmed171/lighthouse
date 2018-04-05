@@ -63,6 +63,11 @@ function runLighthouse(url, configPath, isDebug) {
     args.push('-GA');
   }
 
+  if (process.env.APPVEYOR) {
+    // Appveyor is hella slow already, disable CPU throttling so we're not 16x slowdown
+    args.push('--disable-cpu-throttling');
+  }
+
   // Lighthouse sometimes times out waiting to for a connection to Chrome in CI.
   // Watch for this error and retry relaunching Chrome and running Lighthouse up
   // to RETRIES times. See https://github.com/GoogleChrome/lighthouse/issues/833
