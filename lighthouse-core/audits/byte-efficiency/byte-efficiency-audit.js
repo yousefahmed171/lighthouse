@@ -121,6 +121,7 @@ class UnusedBytes extends Audit {
     });
 
     console.log('before savings')
+    console.log('last long', ConsistentlyInteractive.getLastLongTaskEndTime(simulationBeforeChanges.nodeTiming))
     for (const node of simulationBeforeChanges.nodeTiming.keys()) {
       if (/script.js/.test(node.record && node.record.url)) {
         const timing = simulationBeforeChanges.nodeTiming.get(node)
@@ -128,12 +129,14 @@ class UnusedBytes extends Audit {
       }
     }
     console.log('after savings')
+    console.log('last long', ConsistentlyInteractive.getLastLongTaskEndTime(simulationAfterChanges.nodeTiming))
     for (const node of simulationAfterChanges.nodeTiming.keys()) {
       if (/script.js/.test(node.record && node.record.url)) {
         const timing = simulationAfterChanges.nodeTiming.get(node)
         console.log(`${Math.round(timing.startTime)} to ${Math.round(timing.endTime)}, ${Math.round(timing.endTime - timing.startTime)}ms`)
       }
     }
+
 
     const savingsOnTTI = Math.max(
       ConsistentlyInteractive.getLastLongTaskEndTime(simulationBeforeChanges.nodeTiming) -
