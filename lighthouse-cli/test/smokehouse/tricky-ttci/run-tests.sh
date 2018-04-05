@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-config="lighthouse-core/config/default.js"
+config="lighthouse-core/config/default-config.js"
 expectations="lighthouse-cli/test/smokehouse/tricky-ttci/expectations.js"
 
 if [[ -n "$1" && "$1" == '--share-vars-and-exit' ]]; then

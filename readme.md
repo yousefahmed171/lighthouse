@@ -70,7 +70,7 @@ Configuration:
   --audit-mode, -A               Process saved artifacts from disk                                                                         [boolean]
 
 Output:
-  --output       Reporter for the results, supports multiple values                        [choices: "json", "html", "domhtml"] [default: "domhtml"]
+  --output       Reporter for the results, supports multiple values                        [choices: "json", "html"] [default: "html"]
   --output-path  The file path to output the results. Use 'stdout' to write to stdout.
                  If using JSON output, default is stdout.
                  If using HTML output, default is a file in the working directory with a name based on the test URL and date.
@@ -141,6 +141,10 @@ lighthouse -A http://example.com
 
 lighthouse -GA http://example.com
 # Normal gather + audit run, but also saves collected artifacts to disk for subsequent -A runs.
+
+
+# You can optionally provide a custom folder destination to -G/-A/-GA. Without a value, the default will be `$PWD/latest-run`.
+lighthouse -GA=./gmailartifacts https://gmail.com
 ```
 
 

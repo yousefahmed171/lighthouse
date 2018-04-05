@@ -39,7 +39,7 @@ class LighthouseError extends Error {
 
   /**
    * @param {string} method
-   * @param {{message: string, data: string|undefined}} protocolError
+   * @param {{message: string, data?: string|undefined}} protocolError
    * @return {!Error|LighthouseError}
    */
   static fromProtocolMessage(method, protocolError) {
@@ -88,6 +88,9 @@ const ERRORS = {
   TRACING_ALREADY_STARTED: {message: strings.internalChromeError, pattern: /Tracing.*started/},
   PARSING_PROBLEM: {message: strings.internalChromeError, pattern: /Parsing problem/},
   READ_FAILED: {message: strings.internalChromeError, pattern: /Read failed/},
+
+  // Protocol timeout failures
+  REQUEST_CONTENT_TIMEOUT: {message: strings.requestContentTimeout},
 };
 
 Object.keys(ERRORS).forEach(code => ERRORS[code].code = code);

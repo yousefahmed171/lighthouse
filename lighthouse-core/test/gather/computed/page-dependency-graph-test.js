@@ -17,7 +17,7 @@ const assert = require('assert');
 
 function createRequest(requestId, url, startTime = 0, _initiator = null, _resourceType = null) {
   startTime = startTime / 1000;
-  const endTime = startTime + .1;
+  const endTime = startTime + 0.1;
   return {requestId, url, startTime, endTime, _initiator, _resourceType};
 }
 
@@ -55,10 +55,10 @@ describe('PageDependencyGraph computed artifact:', () => {
 
   describe('#compute_', () => {
     it('should compute the dependency graph', () => {
-      return computedArtifacts.requestPageDependencyGraph(
-        sampleTrace,
-        sampleDevtoolsLog
-      ).then(output => {
+      return computedArtifacts.requestPageDependencyGraph({
+        trace: sampleTrace,
+        devtoolsLog: sampleDevtoolsLog,
+      }).then(output => {
         assert.ok(output instanceof Node, 'did not return a graph');
 
         const dependents = output.getDependents();

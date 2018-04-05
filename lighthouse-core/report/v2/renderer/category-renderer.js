@@ -30,7 +30,7 @@ class CategoryRenderer {
   _renderAuditScore(audit) {
     const tmpl = this.dom.cloneTemplate('#tmpl-lh-audit-score', this.templateContext);
 
-    const scoringMode = audit.result.scoringMode;
+    const scoreDisplayMode = audit.result.scoreDisplayMode;
     const description = audit.result.helpText;
     let title = audit.result.description;
 
@@ -57,23 +57,24 @@ class CategoryRenderer {
       scoreEl.classList.add('lh-score--manual');
     }
 
-    return this._populateScore(tmpl, audit.result.score, scoringMode, title, description);
+    return this._populateScore(tmpl, audit.result.score, scoreDisplayMode, title, description);
   }
 
   /**
    * @param {!DocumentFragment|!Element} element DOM node to populate with values.
    * @param {number} score
-   * @param {string} scoringMode
+   * @param {string} scoreDisplayMode
    * @param {string} title
    * @param {string} description
    * @return {!Element}
    */
-  _populateScore(element, score, scoringMode, title, description) {
+  _populateScore(element, score, scoreDisplayMode, title, description) {
     // Fill in the blanks.
+    const scoreOutOf100 = Math.round(score * 100);
     const valueEl = this.dom.find('.lh-score__value', element);
-    valueEl.textContent = Util.formatNumber(score);
+    valueEl.textContent = Util.formatNumber(scoreOutOf100);
     valueEl.classList.add(`lh-score__value--${Util.calculateRating(score)}`,
-        `lh-score__value--${scoringMode}`);
+        `lh-score__value--${scoreDisplayMode}`);
 
     this.dom.find('.lh-score__title', element).appendChild(
         this.dom.convertMarkdownCodeSnippets(title));
@@ -89,13 +90,13 @@ class CategoryRenderer {
    */
   renderCategoryScore(category) {
     const tmpl = this.dom.cloneTemplate('#tmpl-lh-category-score', this.templateContext);
-    const score = Math.round(category.score);
 
     const gaugeContainerEl = this.dom.find('.lh-score__gauge', tmpl);
     const gaugeEl = this.renderScoreGauge(category);
     gaugeContainerEl.appendChild(gaugeEl);
 
-    return this._populateScore(tmpl, score, 'numeric', category.name, category.description);
+    const {score, name, description} = category;
+    return this._populateScore(tmpl, score, 'numeric', name, description);
   }
 
   /**
@@ -237,12 +238,12 @@ class CategoryRenderer {
     this.dom.find('.lh-gauge__wrapper', tmpl).href = `#${category.id}`;
     this.dom.find('.lh-gauge__label', tmpl).textContent = category.name;
 
-    const score = Math.round(category.score);
-    const fillRotation = Math.floor((score / 100) * 180);
+    const scoreOutOf100 = Math.round(category.score * 100);
+    const fillRotation = Math.floor((scoreOutOf100 / 100) * 180);
 
     const gauge = this.dom.find('.lh-gauge', tmpl);
-    gauge.setAttribute('data-progress', score); // .dataset not supported in jsdom.
-    gauge.classList.add(`lh-gauge--${Util.calculateRating(score)}`);
+    gauge.setAttribute('data-progress', scoreOutOf100); // .dataset not supported in jsdom.
+    gauge.classList.add(`lh-gauge--${Util.calculateRating(category.score)}`);
 
     this.dom.findAll('.lh-gauge__fill', gauge).forEach(el => {
       el.style.transform = `rotate(${fillRotation}deg)`;
@@ -252,7 +253,7 @@ class CategoryRenderer {
         `rotate(${fillRotation}deg)`;
     this.dom.find('.lh-gauge__fill--fix', gauge).style.transform =
         `rotate(${fillRotation * 2}deg)`;
-    this.dom.find('.lh-gauge__percentage', gauge).textContent = score;
+    this.dom.find('.lh-gauge__percentage', gauge).textContent = scoreOutOf100;
 
     return tmpl;
   }
@@ -294,7 +295,7 @@ class CategoryRenderer {
 
       if (audit.result.notApplicable) {
         group.notApplicable.push(audit);
-      } else if (audit.result.score === 100 && !audit.result.debugString) {
+      } else if (audit.result.score === 1 && !audit.result.debugString) {
         group.passed.push(audit);
       } else {
         group.failed.push(audit);

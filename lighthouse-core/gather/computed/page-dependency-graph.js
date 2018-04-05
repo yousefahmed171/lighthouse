@@ -22,12 +22,8 @@ class PageDependencyGraphArtifact extends ComputedArtifact {
     return 'PageDependencyGraph';
   }
 
-  get requiredNumberOfArtifacts() {
-    return 2;
-  }
-
   /**
-   * @param {!WebInspector.NetworkRequest} record
+   * @param {LH.WebInspector.NetworkRequest} record
    * @return {!Array<string>}
    */
   static getNetworkInitiators(record) {
@@ -42,7 +38,7 @@ class PageDependencyGraphArtifact extends ComputedArtifact {
   }
 
   /**
-   * @param {!Array<!WebInspector.NetworkRequest>} networkRecords
+   * @param {Array<LH.WebInspector.NetworkRequest>} networkRecords
    * @return {!NetworkNodeOutput}
    */
   static getNetworkNodeOutput(networkRecords) {
@@ -234,7 +230,7 @@ class PageDependencyGraphArtifact extends ComputedArtifact {
 
   /**
    * @param {!TraceOfTabArtifact} traceOfTab
-   * @param {!Array<!WebInspector.NetworkRequest>} networkRecords
+   * @param {Array<LH.WebInspector.NetworkRequest>} networkRecords
    * @return {!Node}
    */
   static createGraph(traceOfTab, networkRecords) {
@@ -284,12 +280,13 @@ class PageDependencyGraphArtifact extends ComputedArtifact {
   }
 
   /**
-   * @param {!Trace} trace
-   * @param {!DevtoolsLog} devtoolsLog
+   * @param {{trace: !Trace, devtoolsLog: !DevToolsLog}} data
    * @param {!ComputedArtifacts} artifacts
    * @return {!Promise<!Node>}
    */
-  compute_(trace, devtoolsLog, artifacts) {
+  compute_(data, artifacts) {
+    const trace = data.trace;
+    const devtoolsLog = data.devtoolsLog;
     const promises = [
       artifacts.requestTraceOfTab(trace),
       artifacts.requestNetworkRecords(devtoolsLog),

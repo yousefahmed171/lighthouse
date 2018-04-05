@@ -9,11 +9,19 @@ const EventEmitter = require('events').EventEmitter;
 const log = require('lighthouse-logger');
 const LHError = require('../../lib/errors');
 
+/**
+ * @typedef {LH.StrictEventEmitter<{'protocolevent': LH.Protocol.RawEventMessage}>} CrdpEventMessageEmitter
+ * @typedef {LH.CrdpCommands[keyof LH.CrdpCommands]['paramsType']} CommandParamsTypes
+ * @typedef {LH.CrdpCommands[keyof LH.CrdpCommands]['returnType']} CommandReturnTypes
+ */
+
 class Connection {
   constructor() {
     this._lastCommandId = 0;
-    /** @type {Map<number, {resolve: function(Promise<*>), method: string, options: {silent?: boolean}}>}*/
+    /** @type {Map<number, {resolve: function(Promise<CommandReturnTypes>), method: keyof LH.CrdpCommands, options: {silent?: boolean}}>} */
     this._callbacks = new Map();
+
+    /** @type {?CrdpEventMessageEmitter} */
     this._eventEmitter = new EventEmitter();
   }
 
@@ -31,46 +39,11 @@ class Connection {
     return Promise.reject(new Error('Not implemented'));
   }
 
-
   /**
    * @return {Promise<string>}
    */
   wsEndpoint() {
     return Promise.reject(new Error('Not implemented'));
-  }
-
-
-  /**
-   * Call protocol methods
-   * @param {string} method
-   * @param {object=} params
-   * @param {{silent?: boolean}=} cmdOpts
-   * @return {Promise<*>}
-   */
-  sendCommand(method, params = {}, cmdOpts = {}) {
-    log.formatProtocol('method => browser', {method, params}, 'verbose');
-    const id = ++this._lastCommandId;
-    const message = JSON.stringify({id, method, params});
-    this.sendRawMessage(message);
-    return new Promise(resolve => {
-      this._callbacks.set(id, {resolve, method, options: cmdOpts});
-    });
-  }
-
-  /**
-   * Bind listeners for connection events
-   * @param {'notification'} eventName
-   * @param {(...args: any[]) => void} cb
-   */
-  on(eventName, cb) {
-    if (eventName !== 'notification') {
-      throw new Error('Only supports "notification" events');
-    }
-
-    if (!this._eventEmitter) {
-      throw new Error('Attempted to add event listener after connection disposed.');
-    }
-    this._eventEmitter.on(eventName, cb);
   }
 
   /* eslint-disable no-unused-vars */
@@ -91,13 +64,15 @@ class Connection {
    * @protected
    */
   handleRawMessage(message) {
-    const object = JSON.parse(message);
-    // Remote debugging protocol is JSON RPC 2.0 compiant. In terms of that transport,
-    // responses to the commands carry "id" property, while notifications do not.
-    if (!object.id) {
+    const object = /** @type {LH.Protocol.RawMessage} */(JSON.parse(message));
+
+    // Responses to commands carry "id" property, while events do not.
+    if (!('id' in object)) {
+      // tsc doesn't currently narrow type in !in branch, so manually cast.
+      const eventMessage = /** @type {LH.Protocol.RawEventMessage} */(object);
       log.formatProtocol('<= event',
-          {method: object.method, params: object.params}, 'verbose');
-      this.emitNotification(object.method, object.params);
+          {method: eventMessage.method, params: eventMessage.params}, 'verbose');
+      this.emitProtocolEvent(eventMessage);
       return;
     }
 
@@ -105,6 +80,8 @@ class Connection {
     if (callback) {
       this._callbacks.delete(object.id);
 
+      // @ts-ignore since can't convince compiler that callback.resolve's return
+      // type and object.result are matching since only linked by object.id.
       return callback.resolve(Promise.resolve().then(_ => {
         if (object.error) {
           const logLevel = callback.options.silent ? 'verbose' : 'error';
@@ -121,20 +98,19 @@ class Connection {
       // just log these occurrences.
       const error = object.error && object.error.message;
       log.formatProtocol(`disowned method <= browser ${error ? 'ERR' : 'OK'}`,
-          {method: object.method, params: error || object.result}, 'verbose');
+          {method: 'UNKNOWN', params: error || object.result}, 'verbose');
     }
   }
 
   /**
-   * @param {string} method
-   * @param {object=} params
-   * @protected
+   * @param {LH.Protocol.RawEventMessage} eventMessage
    */
-  emitNotification(method, params) {
+  emitProtocolEvent(eventMessage) {
     if (!this._eventEmitter) {
       throw new Error('Attempted to emit event after connection disposed.');
     }
-    this._eventEmitter.emit('notification', {method, params});
+
+    this._eventEmitter.emit('protocolevent', eventMessage);
   }
 
   /**
@@ -147,5 +123,45 @@ class Connection {
     }
   }
 }
+
+// Declared outside class body because function expressions can be typed via more expressive @type
+/**
+ * Bind listeners for connection events
+ * @type {CrdpEventMessageEmitter['on']}
+ */
+Connection.prototype.on = function on(eventName, cb) {
+  if (eventName !== 'protocolevent') {
+    throw new Error('Only supports "protocolevent" events');
+  }
+
+  if (!this._eventEmitter) {
+    throw new Error('Attempted to add event listener after connection disposed.');
+  }
+  this._eventEmitter.on(eventName, cb);
+};
+
+/**
+ * Looser-typed internal implementation of `Connection.sendCommand` which is
+ * strictly typed externally on exposed Connection interface. See
+ * `Driver.sendCommand` for explanation.
+ * @type {(this: Connection, method: keyof LH.CrdpCommands, params?: CommandParamsTypes, cmdOpts?: {silent?: boolean}) => Promise<CommandReturnTypes>}
+ */
+function _sendCommand(method, params = {}, cmdOpts = {}) {
+  /* eslint-disable no-invalid-this */
+  log.formatProtocol('method => browser', {method, params}, 'verbose');
+  const id = ++this._lastCommandId;
+  const message = JSON.stringify({id, method, params});
+  this.sendRawMessage(message);
+  return new Promise(resolve => {
+    this._callbacks.set(id, {resolve, method, options: cmdOpts});
+  });
+  /* eslint-enable no-invalid-this */
+}
+
+/**
+ * Call protocol methods.
+ * @type {LH.Protocol.SendCommand}
+ */
+Connection.prototype.sendCommand = _sendCommand;
 
 module.exports = Connection;

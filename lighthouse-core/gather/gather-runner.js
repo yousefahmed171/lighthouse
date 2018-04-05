@@ -11,6 +11,7 @@ const Audit = require('../audits/audit');
 const LHError = require('../lib/errors');
 const URL = require('../lib/url-shim');
 const NetworkRecorder = require('../lib/network-recorder.js');
+const constants = require('../config/constants');
 
 /**
  * @typedef {!Object<string, !Array<!Promise<*>>>} GathererResults
@@ -65,7 +66,11 @@ class GatherRunner {
    * @param {number=} duration
    * @return {!Promise}
    */
-  static loadBlank(driver, url = 'about:blank', duration = 300) {
+  static loadBlank(
+      driver,
+      url = constants.defaultPassConfig.blankPage,
+      duration = constants.defaultPassConfig.blankDuration
+  ) {
     return driver.gotoURL(url).then(_ => new Promise(resolve => setTimeout(resolve, duration)));
   }
 
@@ -75,17 +80,15 @@ class GatherRunner {
    * will always represent the post-redirected URL. options.initialUrl is the
    * pre-redirect starting URL.
    * @param {!Driver} driver
-   * @param {!Object} options
+   * @param {!Object} passContext
    * @return {!Promise}
    */
-  static loadPage(driver, options) {
-    return driver.gotoURL(options.url, {
+  static loadPage(driver, passContext) {
+    return driver.gotoURL(passContext.url, {
       waitForLoad: true,
-      disableJavaScript: !!options.disableJavaScript,
-      flags: options.flags,
-      config: options.config,
+      passContext,
     }).then(finalUrl => {
-      options.url = finalUrl;
+      passContext.url = finalUrl;
     });
   }
 
@@ -97,15 +100,16 @@ class GatherRunner {
    */
   static setupDriver(driver, gathererResults, options) {
     log.log('status', 'Initializing…');
-    const resetStorage = !options.flags.disableStorageReset;
-    // Enable emulation based on flags
+    const resetStorage = !options.settings.disableStorageReset;
+    // Enable emulation based on settings
     return driver.assertNoSameOriginServiceWorkerClients(options.url)
       .then(_ => driver.getUserAgent())
       .then(userAgent => {
         gathererResults.UserAgent = [userAgent];
         GatherRunner.warnOnHeadless(userAgent, gathererResults);
+        gathererResults.fetchedAt = [(new Date()).toJSON()];
       })
-      .then(_ => driver.beginEmulation(options.flags))
+      .then(_ => driver.beginEmulation(options.settings))
       .then(_ => driver.enableRuntimeEvents())
       .then(_ => driver.cacheNatives())
       .then(_ => driver.registerPerformanceObserver())
@@ -141,7 +145,7 @@ class GatherRunner {
   /**
    * Returns an error if the original network request failed or wasn't found.
    * @param {string} url The URL of the original requested page.
-   * @param {!Array<WebInspector.NetworkRequest>} networkRecords
+   * @param {Array<LH.WebInspector.NetworkRequest>} networkRecords
    * @return {?Error}
    */
   static getPageLoadError(url, networkRecords) {
@@ -192,18 +196,18 @@ class GatherRunner {
    * @return {!Promise}
    */
   static beforePass(passContext, gathererResults) {
-    const blockedUrls = (passContext.config.blockedUrlPatterns || [])
-      .concat(passContext.flags.blockedUrlPatterns || []);
-    const blankPage = passContext.config.blankPage;
-    const blankDuration = passContext.config.blankDuration;
+    const blockedUrls = (passContext.passConfig.blockedUrlPatterns || [])
+      .concat(passContext.settings.blockedUrlPatterns || []);
+    const blankPage = passContext.passConfig.blankPage;
+    const blankDuration = passContext.passConfig.blankDuration;
     const pass = GatherRunner.loadBlank(passContext.driver, blankPage, blankDuration)
         // Set request blocking before any network activity
         // No "clearing" is done at the end of the pass since blockUrlPatterns([]) will unset all if
         // neccessary at the beginning of the next pass.
         .then(() => passContext.driver.blockUrlPatterns(blockedUrls))
-        .then(() => passContext.driver.setExtraHTTPHeaders(passContext.flags.extraHeaders));
+        .then(() => passContext.driver.setExtraHTTPHeaders(passContext.settings.extraHeaders));
 
-    return passContext.config.gatherers.reduce((chain, gathererDefn) => {
+    return passContext.passConfig.gatherers.reduce((chain, gathererDefn) => {
       return chain.then(_ => {
         const gatherer = gathererDefn.instance;
         // Abuse the passContext to pass through gatherer options
@@ -224,11 +228,12 @@ class GatherRunner {
    */
   static pass(passContext, gathererResults) {
     const driver = passContext.driver;
-    const config = passContext.config;
+    const config = passContext.passConfig;
+    const settings = passContext.settings;
     const gatherers = config.gatherers;
 
     const recordTrace = config.recordTrace;
-    const isPerfRun = !passContext.flags.disableStorageReset && recordTrace && config.useThrottling;
+    const isPerfRun = !settings.disableStorageReset && recordTrace && config.useThrottling;
 
     const gatherernames = gatherers.map(g => g.instance.name).join(', ');
     const status = 'Loading page & waiting for onload';
@@ -240,7 +245,7 @@ class GatherRunner {
       // Always record devtoolsLog
       .then(_ => driver.beginDevtoolsLog())
       // Begin tracing if requested by config.
-      .then(_ => recordTrace && driver.beginTrace(passContext.flags))
+      .then(_ => recordTrace && driver.beginTrace(settings))
       // Navigate.
       .then(_ => GatherRunner.loadPage(driver, passContext))
       .then(_ => log.log('statusEnd', status));
@@ -267,7 +272,7 @@ class GatherRunner {
    */
   static afterPass(passContext, gathererResults) {
     const driver = passContext.driver;
-    const config = passContext.config;
+    const config = passContext.passConfig;
     const gatherers = config.gatherers;
     const passData = {};
 
@@ -311,7 +316,7 @@ class GatherRunner {
     });
 
     // Disable throttling so the afterPass analysis isn't throttled
-    pass = pass.then(_ => driver.setThrottling(passContext.flags, {useThrottling: false}));
+    pass = pass.then(_ => driver.setThrottling(passContext.settings, {useThrottling: false}));
 
     pass = gatherers.reduce((chain, gathererDefn) => {
       const gatherer = gathererDefn.instance;
@@ -371,7 +376,7 @@ class GatherRunner {
       });
     }, Promise.resolve()).then(_ => {
       // Fail the run if more than 50% of all artifacts failed due to page load failure.
-      if (pageLoadFailures.length > Object.keys(artifacts).length * .5) {
+      if (pageLoadFailures.length > Object.keys(artifacts).length * 0.5) {
         throw pageLoadFailures[0];
       }
 
@@ -390,16 +395,12 @@ class GatherRunner {
       return Promise.reject(new Error('You must provide a url to the gather-runner'));
     }
 
-    if (typeof options.flags === 'undefined') {
-      options.flags = {};
-    }
-
     if (typeof options.config === 'undefined') {
       return Promise.reject(new Error('You must provide a config'));
     }
 
-    if (typeof options.flags.disableCpuThrottling === 'undefined') {
-      options.flags.disableCpuThrottling = false;
+    if (typeof options.settings === 'undefined') {
+      options.settings = {};
     }
 
     const gathererResults = {
@@ -414,21 +415,21 @@ class GatherRunner {
       .then(_ => {
         // If the main document redirects, we'll update this to keep track
         let urlAfterRedirects;
-        return passes.reduce((chain, config, passIndex) => {
-          const passContext = Object.assign({}, options, {config});
+        return passes.reduce((chain, passConfig, passIndex) => {
+          const passContext = Object.assign({}, options, {passConfig});
           return chain
-            .then(_ => driver.setThrottling(options.flags, config))
+            .then(_ => driver.setThrottling(options.settings, passConfig))
             .then(_ => GatherRunner.beforePass(passContext, gathererResults))
             .then(_ => GatherRunner.pass(passContext, gathererResults))
             .then(_ => GatherRunner.afterPass(passContext, gathererResults))
             .then(passData => {
-              const passName = config.passName || Audit.DEFAULT_PASS;
+              const passName = passConfig.passName || Audit.DEFAULT_PASS;
 
               // networkRecords are discarded and not added onto artifacts.
               tracingData.devtoolsLogs[passName] = passData.devtoolsLog;
 
               // If requested by config, add trace to pass's tracingData
-              if (config.recordTrace) {
+              if (passConfig.recordTrace) {
                 tracingData.traces[passName] = passData.trace;
               }
 
@@ -443,8 +444,8 @@ class GatherRunner {
       .then(_ => GatherRunner.disposeDriver(driver))
       .then(_ => GatherRunner.collectArtifacts(gathererResults))
       .then(artifacts => {
-        // Add tracing data to the artifacts object.
-        return Object.assign(artifacts, tracingData);
+        // Add tracing data and settings used to the artifacts object.
+        return Object.assign(artifacts, tracingData, {settings: options.settings});
       })
       // cleanup on error
       .catch(err => {

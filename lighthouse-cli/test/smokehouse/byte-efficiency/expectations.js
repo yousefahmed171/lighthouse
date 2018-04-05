@@ -27,7 +27,7 @@ module.exports = [
         },
       },
       'unminified-javascript': {
-        score: '<100',
+        score: '<1',
         extendedInfo: {
           value: {
             wastedKb: 45,
@@ -49,7 +49,7 @@ module.exports = [
         },
       },
       'unused-javascript': {
-        score: '<100',
+        score: '<1',
         extendedInfo: {
           value: {
             wastedKb: '>=25',
@@ -61,7 +61,7 @@ module.exports = [
         },
       },
       'offscreen-images': {
-        score: '<100', // big enough savings to interfere with download of script.js
+        score: '<1', // big enough savings to interfere with download of script.js
         extendedInfo: {
           value: {
             results: [
@@ -79,13 +79,24 @@ module.exports = [
         },
       },
       'uses-webp-images': {
-        score: '<100', // big enough savings to interfere with download of script.js
+        score: '<1', // big enough savings to interfere with download of script.js
         extendedInfo: {
           value: {
             wastedKb: '>60',
             wastedMs: '>200',
             results: {
               length: 4,
+            },
+          },
+        },
+      },
+      'uses-text-compression': {
+        extendedInfo: {
+          value: {
+            wastedMs: '>700',
+            wastedKb: '>50',
+            results: {
+              length: 2,
             },
           },
         },

@@ -57,7 +57,7 @@ class ReportRenderer {
   _renderReportHeader(report) {
     const header = this._dom.cloneTemplate('#tmpl-lh-heading', this._templateContext);
     this._dom.find('.lh-config__timestamp', header).textContent =
-        Util.formatDateTime(report.generatedTime);
+        Util.formatDateTime(report.fetchedAt);
     const url = this._dom.find('.lh-metadata__url', header);
     url.href = report.url;
     url.textContent = report.url;
@@ -69,8 +69,6 @@ class ReportRenderer {
       const item = this._dom.cloneTemplate('#tmpl-lh-env__items', env);
       this._dom.find('.lh-env__name', item).textContent = runtime.name;
       this._dom.find('.lh-env__description', item).textContent = runtime.description;
-      this._dom.find('.lh-env__enabled', item).textContent =
-          runtime.enabled ? 'Enabled' : 'Disabled';
       env.appendChild(item);
     });
 
@@ -85,7 +83,7 @@ class ReportRenderer {
     const footer = this._dom.cloneTemplate('#tmpl-lh-footer', this._templateContext);
     this._dom.find('.lh-footer__version', footer).textContent = report.lighthouseVersion;
     this._dom.find('.lh-footer__timestamp', footer).textContent =
-        Util.formatDateTime(report.generatedTime);
+        Util.formatDateTime(report.fetchedAt);
     return footer;
   }
 
@@ -109,7 +107,7 @@ class ReportRenderer {
       this._dom.find('.leftnav-item__category', navItem).textContent = category.name;
       const score = this._dom.find('.leftnav-item__score', navItem);
       score.classList.add(`lh-score__value--${Util.calculateRating(category.score)}`);
-      score.textContent = Math.round(category.score);
+      score.textContent = Math.round(100 * category.score);
       nav.appendChild(navItem);
     }
     return leftNav;
@@ -209,7 +207,7 @@ if (typeof module !== 'undefined' && module.exports) {
  *     debugString: (string|undefined),
  *     displayValue: string,
  *     helpText: string,
- *     scoringMode: string,
+ *     scoreDisplayMode: string,
  *     extendedInfo: Object,
  *     error: boolean,
  *     score: number,
@@ -252,17 +250,19 @@ ReportRenderer.GroupJSON; // eslint-disable-line no-unused-expressions
  * @typedef {{
  *     lighthouseVersion: string,
  *     userAgent: string,
+ *     fetchedAt: string,
  *     generatedTime: string,
  *     timing: {total: number},
  *     initialUrl: string,
  *     url: string,
  *     runWarnings: (!Array<string>|undefined),
+ *     artifacts: {traces: {defaultPass: {traceEvents: !Array}}},
  *     audits: !Object<string, !ReportRenderer.AuditResultJSON>,
  *     reportCategories: !Array<!ReportRenderer.CategoryJSON>,
  *     reportGroups: !Object<string, !ReportRenderer.GroupJSON>,
  *     runtimeConfig: {
  *       blockedUrlPatterns: !Array<string>,
- *       extraHeaders: !Object,
+ *       extraHeaders: !Object<string, string>,
  *       environment: !Array<{description: string, enabled: boolean, name: string}>
  *     }
  * }}

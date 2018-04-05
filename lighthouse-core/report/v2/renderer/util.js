@@ -9,14 +9,23 @@
 
 const ELLIPSIS = '\u2026';
 const NBSP = '\xa0';
+const PASS_THRESHOLD = 0.75;
 
 const RATINGS = {
-  PASS: {label: 'pass', minScore: 75},
-  AVERAGE: {label: 'average', minScore: 45},
+  PASS: {label: 'pass', minScore: PASS_THRESHOLD},
+  AVERAGE: {label: 'average', minScore: 0.45},
   FAIL: {label: 'fail'},
 };
 
+/**
+ * @fileoverview
+ * @suppress {reportUnknownTypes} see https://github.com/GoogleChrome/lighthouse/pull/4778#issuecomment-373549391
+ */
 class Util {
+  static get PASS_THRESHOLD() {
+    return PASS_THRESHOLD;
+  }
+
   /**
    * Convert a score to a rating label.
    * @param {number} score
@@ -48,7 +57,7 @@ class Util {
    * @param {number=} granularity Controls how coarse the displayed value is, defaults to .01
    * @return {string}
    */
-  static formatBytesToKB(size, granularity = .1) {
+  static formatBytesToKB(size, granularity = 0.1) {
     const kbs = (Math.round(size / 1024 / granularity) * granularity).toLocaleString();
     return `${kbs}${NBSP}KB`;
   }
@@ -122,7 +131,9 @@ class Util {
    * @return {string}
    */
   static getURLDisplayName(parsedUrl, options) {
-    options = options || {};
+    // Closure optional properties aren't optional in tsc, so fallback needs undefined  values.
+    options = options || {numPathParts: undefined, preserveQuery: undefined,
+      preserveHost: undefined};
     const numPathParts = options.numPathParts !== undefined ? options.numPathParts : 2;
     const preserveQuery = options.preserveQuery !== undefined ? options.preserveQuery : true;
     const preserveHost = options.preserveHost || false;

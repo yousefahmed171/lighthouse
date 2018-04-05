@@ -10,7 +10,6 @@
 const yargs = require('yargs');
 // @ts-ignore
 const pkg = require('../package.json');
-const Driver = require('../lighthouse-core/gather/driver.js');
 const printer = require('./printer');
 
 /**
@@ -61,6 +60,7 @@ function getFlags(manualArgv) {
           'save-assets', 'list-all-audits', 'list-trace-categories', 'additional-trace-categories',
           'config-path', 'chrome-flags', 'perf', 'mixed-content', 'port', 'hostname',
           'max-wait-for-load', 'enable-error-reporting', 'gather-mode', 'audit-mode',
+          'only-audits', 'only-categories', 'skip-audits',
         ],
         'Configuration:')
       .describe({
@@ -73,8 +73,8 @@ function getFlags(manualArgv) {
         'disable-cpu-throttling': 'Disable CPU throttling',
         'disable-network-throttling': 'Disable network throttling',
         'gather-mode':
-            'Collect artifacts from a connected browser and save to disk. If audit-mode is not also enabled, the run will quit early.',
-        'audit-mode': 'Process saved artifacts from disk',
+            'Collect artifacts from a connected browser and save to disk. (Artifacts folder path may optionally be provided). If audit-mode is not also enabled, the run will quit early.',
+        'audit-mode': 'Process saved artifacts from disk. (Artifacts folder path may be provided, otherwise defaults to ./latest-run/)',
         'save-assets': 'Save the trace contents & screenshots to disk',
         'list-all-audits': 'Prints a list of all available audits and exits',
         'list-trace-categories': 'Prints a list of all required trace categories and exits',
@@ -91,6 +91,9 @@ function getFlags(manualArgv) {
         'max-wait-for-load':
             'The timeout (in milliseconds) to wait before the page is considered done loading and the run should continue. WARNING: Very high values can lead to large traces and instability',
         'extra-headers': 'Set extra HTTP Headers to pass with request',
+        'only-audits': 'Only run the specified audits',
+        'only-categories': 'Only run the specified categories',
+        'skip-audits': 'Run everything except these audits',
       })
       // set aliases
       .alias({'gather-mode': 'G', 'audit-mode': 'A'})
@@ -111,20 +114,22 @@ function getFlags(manualArgv) {
         'disable-storage-reset', 'disable-device-emulation', 'disable-cpu-throttling',
         'disable-network-throttling', 'save-assets', 'list-all-audits',
         'list-trace-categories', 'perf', 'view', 'verbose', 'quiet', 'help',
-        'gather-mode', 'audit-mode', 'mixed-content',
+        'mixed-content',
       ])
       .choices('output', printer.getValidOutputOptions())
       // force as an array
-      .array('blocked-url-patterns')
-      .string('extra-headers')
+      // note MUST use camelcase versions or only the kebab-case version will be forced
+      .array('blockedUrlPatterns')
+      .array('onlyAudits')
+      .array('onlyCategories')
+      .array('skipAudits')
+      .string('extraHeaders')
 
       // default values
       .default('chrome-flags', '')
-      .default('disable-cpu-throttling', false)
       .default('output', 'html')
       .default('port', 0)
       .default('hostname', 'localhost')
-      .default('max-wait-for-load', Driver.MAX_WAIT_FOR_FULLY_LOADED)
       .check(/** @param {!LH.Flags} argv */ (argv) => {
         // Make sure lighthouse has been passed a url, or at least one of --list-all-audits
         // or --list-trace-categories. If not, stop the program and ask for a url

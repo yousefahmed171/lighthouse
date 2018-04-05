@@ -16,6 +16,17 @@
 const Gatherer = require('../gatherer');
 
 /**
+ * Gets the opening tag text of the given node.
+ * @param {!Node}
+ * @return {string}
+ */
+function getOuterHTMLSnippet(node) {
+  const reOpeningTag = /^.*?>/;
+  const match = node.outerHTML.match(reOpeningTag);
+  return match && match[0];
+}
+
+/**
  * Constructs a pretty label from element's selectors. For example, given
  * <div id="myid" class="myclass">, returns 'div#myid.myclass'.
  * @param {!HTMLElement} element
@@ -118,10 +129,12 @@ function getDOMStats(element, deep=true) {
     depth: {
       max: result.maxDepth,
       pathToElement: elementPathInDOM(deepestNode),
+      snippet: getOuterHTMLSnippet(deepestNode),
     },
     width: {
       max: result.maxWidth,
       pathToElement: elementPathInDOM(parentWithMostChildren),
+      snippet: getOuterHTMLSnippet(parentWithMostChildren),
     },
   };
 }
@@ -133,12 +146,13 @@ class DOMStats extends Gatherer {
    */
   afterPass(options) {
     const expression = `(function() {
+      ${getOuterHTMLSnippet.toString()};
       ${createSelectorsLabel.toString()};
       ${elementPathInDOM.toString()};
       return (${getDOMStats.toString()}(document.documentElement));
     })()`;
     return options.driver.sendCommand('DOM.enable')
-      .then(() => options.driver.evaluateAsync(expression))
+      .then(() => options.driver.evaluateAsync(expression, {useIsolation: true}))
       .then(results => options.driver.getElementsInDocument().then(allNodes => {
         results.totalDOMNodes = allNodes.length;
         return options.driver.sendCommand('DOM.disable').then(() => results);

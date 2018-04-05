@@ -28,6 +28,7 @@ module.exports = {
         'CallExpression > ArrowFunctionExpression > :expression.body',
       ],
     }],
+    'no-floating-decimal': 2,
     'max-len': [2, 100, {
       ignoreComments: true,
       ignoreUrls: true,
@@ -68,7 +69,7 @@ module.exports = {
     'arrow-parens': 0,
   },
   parserOptions: {
-    ecmaVersion: 6,
+    ecmaVersion: 2017,
     ecmaFeatures: {
       globalReturn: true,
       jsx: false,

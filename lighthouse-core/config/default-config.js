@@ -5,17 +5,19 @@
  */
 'use strict';
 
+const constants = require('./constants');
+
 /* eslint-disable max-len */
 
 module.exports = {
-  settings: {},
+  settings: constants.defaultSettings,
   passes: [{
     passName: 'defaultPass',
     recordTrace: true,
+    useThrottling: true,
     pauseAfterLoadMs: 5250,
     networkQuietThresholdMs: 5250,
     cpuQuietThresholdMs: 5250,
-    useThrottling: true,
     gatherers: [
       'url',
       'scripts',
@@ -51,9 +53,6 @@ module.exports = {
   },
   {
     passName: 'offlinePass',
-    useThrottling: false,
-    // Just wait for onload
-    networkQuietThresholdMs: 0,
     gatherers: [
       'service-worker',
       'offline',
@@ -62,9 +61,6 @@ module.exports = {
   },
   {
     passName: 'redirectPass',
-    useThrottling: false,
-    // Just wait for onload
-    networkQuietThresholdMs: 0,
     // Speed up the redirect pass by blocking stylesheets, fonts, and images
     blockedUrlPatterns: ['*.css', '*.jpg', '*.jpeg', '*.png', '*.gif', '*.svg', '*.ttf', '*.woff', '*.woff2'],
     gatherers: [
@@ -159,7 +155,7 @@ module.exports = {
     'byte-efficiency/unused-css-rules',
     'byte-efficiency/uses-webp-images',
     'byte-efficiency/uses-optimized-images',
-    'byte-efficiency/uses-request-compression',
+    'byte-efficiency/uses-text-compression',
     'byte-efficiency/uses-responsive-images',
     'dobetterweb/appcache-manifest',
     'dobetterweb/dom-size',
@@ -180,6 +176,7 @@ module.exports = {
     'seo/font-size',
     'seo/link-text',
     'seo/is-crawlable',
+    'seo/robots-txt',
     'seo/hreflang',
     'seo/plugins',
     'seo/canonical',
@@ -279,7 +276,7 @@ module.exports = {
         {id: 'unused-css-rules', weight: 0, group: 'perf-hint'},
         {id: 'uses-optimized-images', weight: 0, group: 'perf-hint'},
         {id: 'uses-webp-images', weight: 0, group: 'perf-hint'},
-        {id: 'uses-request-compression', weight: 0, group: 'perf-hint'},
+        {id: 'uses-text-compression', weight: 0, group: 'perf-hint'},
         {id: 'time-to-first-byte', weight: 0, group: 'perf-hint'},
         {id: 'redirects', weight: 0, group: 'perf-hint'},
         {id: 'uses-rel-preload', weight: 0, group: 'perf-hint'},
@@ -400,6 +397,7 @@ module.exports = {
         {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
         {id: 'link-text', weight: 1, group: 'seo-content'},
         {id: 'is-crawlable', weight: 1, group: 'seo-crawl'},
+        {id: 'robots-txt', weight: 1, group: 'seo-crawl'},
         {id: 'hreflang', weight: 1, group: 'seo-content'},
         {id: 'canonical', weight: 1, group: 'seo-content'},
         {id: 'font-size', weight: 1, group: 'seo-mobile'},

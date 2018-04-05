@@ -33,7 +33,7 @@ describe('CLI run', function() {
       assert.equal(results.audits.viewport.rawValue, false);
 
       // passed results match saved results
-      assert.strictEqual(results.generatedTime, passedResults.generatedTime);
+      assert.strictEqual(results.fetchedAt, passedResults.fetchedAt);
       assert.strictEqual(results.url, passedResults.url);
       assert.strictEqual(results.audits.viewport.rawValue, passedResults.audits.viewport.rawValue);
       assert.strictEqual(
@@ -44,6 +44,12 @@ describe('CLI run', function() {
       fs.unlinkSync(filename);
     });
   }).timeout(20 * 1000);
+});
+
+describe('flag coercing', () => {
+  it('should force to array', () => {
+    assert.deepStrictEqual(getFlags(`--only-audits foo chrome://version`).onlyAudits, ['foo']);
+  });
 });
 
 describe('Parsing --chrome-flags', () => {

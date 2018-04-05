@@ -19,16 +19,17 @@ class UnusedCSSRules extends ByteEfficiencyAudit {
       name: 'unused-css-rules',
       description: 'Unused CSS rules',
       informative: true,
+      scoreDisplayMode: ByteEfficiencyAudit.SCORING_MODES.NUMERIC,
       helpText: 'Remove unused rules from stylesheets to reduce unnecessary ' +
           'bytes consumed by network activity. ' +
-          '[Learn more](https://developers.google.com/speed/docs/insights/OptimizeCSSDelivery)',
+          '[Learn more](https://developers.google.com/speed/docs/insights/OptimizeCSSDelivery).',
       requiredArtifacts: ['CSSUsage', 'URL', 'devtoolsLogs'],
     };
   }
 
   /**
    * @param {!Array.<{header: {styleSheetId: string}}>} styles The output of the Styles gatherer.
-   * @param {!Array<WebInspector.NetworkRequest>} networkRecords
+   * @param {Array<LH.WebInspector.NetworkRequest>} networkRecords
    * @return {!Object} A map of styleSheetId to stylesheet information.
    */
   static indexStylesheetsById(styles, networkRecords) {

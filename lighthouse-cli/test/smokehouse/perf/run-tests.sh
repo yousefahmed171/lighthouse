@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-config="lighthouse-core/config/perf.json"
+config="lighthouse-core/config/perf-config.js"
 expectations="lighthouse-cli/test/smokehouse/perf/expectations.js"
 
 if [[ -n "$1" && "$1" == '--share-vars-and-exit' ]]; then

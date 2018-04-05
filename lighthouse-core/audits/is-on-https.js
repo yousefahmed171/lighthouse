@@ -9,7 +9,7 @@ const Audit = require('./audit');
 const URL = require('../lib/url-shim');
 const Util = require('../report/v2/renderer/util');
 
-const SECURE_SCHEMES = ['data', 'https', 'wss', 'blob', 'chrome', 'chrome-extension'];
+const SECURE_SCHEMES = ['data', 'https', 'wss', 'blob', 'chrome', 'chrome-extension', 'about'];
 const SECURE_DOMAINS = ['localhost', '127.0.0.1'];
 
 class HTTPS extends Audit {
@@ -58,17 +58,21 @@ class HTTPS extends Audit {
         displayValue = `${insecureRecords.length} insecure request found`;
       }
 
+      const items = insecureRecords.map(record => ({
+        url: record.url,
+      }));
+
+      const headings = [
+        {key: 'url', itemType: 'url', text: 'Insecure URL'},
+      ];
+
       return {
         rawValue: insecureRecords.length === 0,
         displayValue,
         extendedInfo: {
           value: insecureRecords,
         },
-        details: {
-          type: 'list',
-          header: {type: 'text', text: 'Insecure URLs:'},
-          items: insecureRecords.map(record => ({type: 'url', value: record.url})),
-        },
+        details: Audit.makeTableDetails(headings, items),
       };
     });
   }

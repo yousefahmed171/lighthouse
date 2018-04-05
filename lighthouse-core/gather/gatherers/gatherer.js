@@ -28,26 +28,28 @@ class Gatherer {
 
   /**
    * Called before navigation to target url.
-   * @param {!Object} options
+   * @param {LH.Gatherer.PassContext} passContext
+   * @return {*|!Promise<*>}
    */
-  beforePass(options) { }
+  beforePass(passContext) { }
 
   /**
    * Called after target page is loaded. If a trace is enabled for this pass,
    * the trace is still being recorded.
-   * @param {!Object} options
+   * @param {LH.Gatherer.PassContext} passContext
+   * @return {*|!Promise<*>}
    */
-  pass(options) { }
+  pass(passContext) { }
 
   /**
    * Called after target page is loaded, all gatherer `pass` methods have been
    * executed, and — if generated in this pass — the trace is ended. The trace
    * and record of network activity are provided in `loadData`.
-   * @param {!Object} options
-   * @param {{networkRecords: !Array, trace: {traceEvents: !Array}}} loadData
+   * @param {LH.Gatherer.PassContext} passContext
+   * @param {LH.Gatherer.LoadData} loadData
    * @return {*|!Promise<*>}
    */
-  afterPass(options, loadData) { }
+  afterPass(passContext, loadData) { }
 
   /* eslint-enable no-unused-vars */
 }

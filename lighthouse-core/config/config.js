@@ -6,16 +6,16 @@
 // @ts-nocheck
 'use strict';
 
-const defaultConfigPath = './default.js';
-const defaultConfig = require('./default.js');
+const defaultConfigPath = './default-config.js';
+const defaultConfig = require('./default-config.js');
 const fullConfig = require('./full-config.js');
+const constants = require('./constants');
 
+const isDeepEqual = require('lodash.isequal');
 const log = require('lighthouse-logger');
 const path = require('path');
 const Audit = require('../audits/audit');
 const Runner = require('../runner');
-
-const _flatten = arr => [].concat(...arr);
 
 // cleanTrace is run to remove duplicate TracingStartedInPage events,
 // and to change TracingStartedInBrowser events into TracingStartedInPage.
@@ -120,18 +120,8 @@ function validatePasses(passes, audits) {
 
   // Passes must have unique `passName`s. Throw otherwise.
   const usedNames = new Set();
-  let defaultUsed = false;
-  passes.forEach((pass, index) => {
-    let passName = pass.passName;
-    if (!passName) {
-      if (defaultUsed) {
-        throw new Error(`passes[${index}] requires a passName`);
-      }
-
-      passName = Audit.DEFAULT_PASS;
-      defaultUsed = true;
-    }
-
+  passes.forEach(pass => {
+    const passName = pass.passName;
     if (usedNames.has(passName)) {
       throw new Error(`Passes must have unique names (repeated passName: ${passName}.`);
     }
@@ -187,7 +177,7 @@ function assertValidAudit(auditDefinition, auditPath) {
   // If it'll have a ✔ or ✖ displayed alongside the result, it should have failureDescription
   if (typeof auditDefinition.meta.failureDescription !== 'string' &&
     auditDefinition.meta.informative !== true &&
-    auditDefinition.meta.scoringMode !== Audit.SCORING_MODES.NUMERIC) {
+    auditDefinition.meta.scoreDisplayMode !== Audit.SCORING_MODES.NUMERIC) {
     throw new Error(`${auditName} has no failureDescription and should.`);
   }
 
@@ -261,7 +251,12 @@ function merge(base, extension) {
     return extension;
   } else if (Array.isArray(extension)) {
     if (!Array.isArray(base)) throw new TypeError(`Expected array but got ${typeof base}`);
-    return base.concat(extension);
+    const merged = base.slice();
+    extension.forEach(item => {
+      if (!merged.some(candidate => isDeepEqual(candidate, item))) merged.push(item);
+    });
+
+    return merged;
   } else if (typeof extension === 'object') {
     if (typeof base !== 'object') throw new TypeError(`Expected object but got ${typeof base}`);
     Object.keys(extension).forEach(key => {
@@ -274,16 +269,32 @@ function merge(base, extension) {
 }
 
 function deepClone(json) {
-  return JSON.parse(JSON.stringify(json));
+  const cloned = JSON.parse(JSON.stringify(json));
+
+  // Copy arrays that could contain plugins to allow for programmatic
+  // injection of plugins.
+  if (Array.isArray(json.passes)) {
+    cloned.passes.forEach((pass, i) => {
+      pass.gatherers = Array.from(json.passes[i].gatherers);
+    });
+  }
+
+  if (Array.isArray(json.audits)) {
+    cloned.audits = Array.from(json.audits);
+  }
+
+  return cloned;
 }
 
 class Config {
   /**
    * @constructor
    * @param {!LighthouseConfig} configJSON
-   * @param {string=} configPath The absolute path to the config file, if there is one.
+   * @param {LH.Flags=} flags
    */
-  constructor(configJSON, configPath) {
+  constructor(configJSON, flags) {
+    let configPath = flags && flags.configPath;
+
     if (!configJSON) {
       configJSON = defaultConfig;
       configPath = path.resolve(__dirname, defaultConfigPath);
@@ -294,19 +305,7 @@ class Config {
     }
 
     // We don't want to mutate the original config object
-    const inputConfig = configJSON;
     configJSON = deepClone(configJSON);
-
-    // Copy arrays that could contain plugins to allow for programmatic
-    // injection of plugins.
-    if (Array.isArray(inputConfig.passes)) {
-      configJSON.passes.forEach((pass, i) => {
-        pass.gatherers = Array.from(inputConfig.passes[i].gatherers);
-      });
-    }
-    if (Array.isArray(inputConfig.audits)) {
-      configJSON.audits = Array.from(inputConfig.audits);
-    }
 
     // Extend the default or full config if specified
     if (configJSON.extends === 'lighthouse:full') {
@@ -317,15 +316,20 @@ class Config {
       configJSON = Config.extendConfigJSON(deepClone(defaultConfig), configJSON);
     }
 
-    // Expand audit/gatherer short-hand representations
+    // Augment config with necessary defaults
+    configJSON = Config.augmentWithDefaults(configJSON);
+
+    // Expand audit/gatherer short-hand representations and merge in defaults
     configJSON.audits = Config.expandAuditShorthandAndMergeOptions(configJSON.audits);
     configJSON.passes = Config.expandGathererShorthandAndMergeOptions(configJSON.passes);
 
+    // Override any applicable settings with CLI flags
+    configJSON.settings = merge(configJSON.settings || {}, flags || {});
+
     // Generate a limited config if specified
-    if (configJSON.settings &&
-        (Array.isArray(configJSON.settings.onlyCategories) ||
+    if (Array.isArray(configJSON.settings.onlyCategories) ||
         Array.isArray(configJSON.settings.onlyAudits) ||
-        Array.isArray(configJSON.settings.skipAudits))) {
+        Array.isArray(configJSON.settings.skipAudits)) {
       const categoryIds = configJSON.settings.onlyCategories;
       const auditIds = configJSON.settings.onlyAudits;
       const skipAuditIds = configJSON.settings.skipAudits;
@@ -336,11 +340,12 @@ class Config {
     // Store the directory of the config path, if one was provided.
     this._configDir = configPath ? path.dirname(configPath) : undefined;
 
-    this._passes = Config.requireGatherers(configJSON.passes);
+    this._passes = Config.requireGatherers(configJSON.passes, this._configDir);
     this._audits = Config.requireAudits(configJSON.audits, this._configDir);
     this._artifacts = expandArtifacts(configJSON.artifacts);
     this._categories = configJSON.categories;
     this._groups = configJSON.groups;
+    this._settings = configJSON.settings || {};
 
     // validatePasses must follow after audits are required
     validatePasses(configJSON.passes, this._audits);
@@ -355,8 +360,11 @@ class Config {
   static extendConfigJSON(baseJSON, extendJSON) {
     if (extendJSON.passes) {
       extendJSON.passes.forEach(pass => {
-        const basePass = baseJSON.passes.find(candidate => candidate.passName === pass.passName);
-        if (!basePass || !pass.passName) {
+        // use the default pass name if one is not specified
+        const passName = pass.passName || constants.defaultPassConfig.passName;
+        const basePass = baseJSON.passes.find(candidate => candidate.passName === passName);
+
+        if (!basePass) {
           baseJSON.passes.push(pass);
         } else {
           merge(basePass, pass);
@@ -367,6 +375,20 @@ class Config {
     }
 
     return merge(baseJSON, extendJSON);
+  }
+
+  /**
+   * @param {LH.Config} config
+   * @return {LH.Config}
+   */
+  static augmentWithDefaults(config) {
+    const {defaultSettings, defaultPassConfig} = constants;
+    config.settings = merge(deepClone(defaultSettings), config.settings);
+    if (config.passes) {
+      config.passes = config.passes.map(pass => merge(deepClone(defaultPassConfig), pass));
+    }
+
+    return config;
   }
 
   /**
@@ -415,6 +437,8 @@ class Config {
           return {path: gatherer, options: {}};
         } else if (typeof gatherer === 'function') {
           return {implementation: gatherer, options: {}};
+        } else if (gatherer && typeof gatherer.beforePass === 'function') {
+          return {instance: gatherer, options: {}};
         } else {
           return gatherer;
         }
@@ -461,12 +485,17 @@ class Config {
     config.passes = Config.expandGathererShorthandAndMergeOptions(config.passes);
     config.passes = Config.requireGatherers(config.passes);
 
-    // 1. Filter to just the chosen categories
-    config.categories = Config.filterCategoriesAndAudits(config.categories, categoryIds, auditIds,
-        skipAuditIds);
+    // 1. Filter to just the chosen categories/audits
+    const {categories, audits: requestedAuditNames} = Config.filterCategoriesAndAudits(
+      config.categories,
+      categoryIds,
+      auditIds,
+      skipAuditIds
+    );
+
+    config.categories = categories;
 
     // 2. Resolve which audits will need to run
-    const requestedAuditNames = Config.getAuditIdsInCategories(config.categories);
     const auditPathToNameMap = Config.getMapOfAuditPathToName(config);
     const getAuditName = auditDefn => auditDefn.implementation ?
       auditDefn.implementation.meta.name :
@@ -489,7 +518,7 @@ class Config {
    * @param {!Array<string>=} categoryIds
    * @param {!Array<string>=} auditIds
    * @param {!Array<string>=} skipAuditIds
-   * @return {!Object<string, {audits: !Array<{id: string}>}>}
+   * @return {{categories: Object<string, {audits: !Array<{id: string}>}>, audits: Set<string>}}
    */
   static filterCategoriesAndAudits(oldCategories, categoryIds, auditIds, skipAuditIds) {
     if (auditIds && skipAuditIds) {
@@ -529,6 +558,9 @@ class Config {
       }
     }
 
+    const includedAudits = new Set(auditIds);
+    skipAuditIds.forEach(id => includedAudits.delete(id));
+
     Object.keys(oldCategories).forEach(categoryId => {
       const category = deepClone(oldCategories[categoryId]);
 
@@ -551,20 +583,11 @@ class Config {
 
       if (category.audits.length) {
         categories[categoryId] = category;
+        category.audits.forEach(audit => includedAudits.add(audit.id));
       }
     });
 
-    return categories;
-  }
-
-  /**
-   * Finds the unique set of audit IDs used by the categories object.
-   * @param {!Object<string, {audits: !Array<{id: string}>}>} categories
-   * @return {!Set<string>}
-   */
-  static getAuditIdsInCategories(categories) {
-    const audits = _flatten(Object.keys(categories).map(id => categories[id].audits));
-    return new Set(audits.map(audit => audit.id));
+    return {categories, audits: includedAudits};
   }
 
   /**
@@ -581,7 +604,7 @@ class Config {
   /**
    * Creates mapping from audit path (used in config.audits) to audit.name (used in categories)
    * @param {!Object} config Lighthouse config object.
-   * @return {Map}
+   * @return {Map<string, string>}
    */
   static getMapOfAuditPathToName(config) {
     const auditObjectsAll = Config.requireAudits(config.audits);
@@ -747,6 +770,11 @@ class Config {
   /** @type {Object<string, {title: string, description: string}>|undefined} */
   get groups() {
     return this._groups;
+  }
+
+  /** @type {LH.ConfigSettings} */
+  get settings() {
+    return this._settings;
   }
 }
 

@@ -60,7 +60,8 @@ describe('PerfCategoryRenderer', () => {
     assert.deepEqual(score, score.firstElementChild, 'first child is a score');
     assert.ok(value.classList.contains('lh-score__value--numeric'),
               'category score is numeric');
-    assert.equal(value.textContent, Math.round(category.score), 'category score is rounded');
+    const scoreInDom = Number(value.textContent);
+    assert.ok(Number.isInteger(scoreInDom) && scoreInDom > 10, 'category score is rounded');
     assert.equal(title.textContent, category.name, 'title is set');
   });
 
@@ -84,7 +85,7 @@ describe('PerfCategoryRenderer', () => {
     const categoryDOM = renderer.render(category, sampleResults.reportGroups);
 
     const hintAudits = category.audits.filter(audit => audit.group === 'perf-hint' &&
-        audit.result.score !== 100);
+        audit.result.score !== 1);
     const hintElements = categoryDOM.querySelectorAll('.lh-perf-hint');
     assert.equal(hintElements.length, hintAudits.length);
 
@@ -102,7 +103,7 @@ describe('PerfCategoryRenderer', () => {
       group: 'perf-hint',
       result: {
         rawValue: 100, debugString: 'Yikes!', description: 'Bug',
-        helpText: '', score: 32,
+        helpText: '', score: 0.32,
         details: {summary: {wastedMs: 3223}},
       },
     };
@@ -138,7 +139,7 @@ describe('PerfCategoryRenderer', () => {
       group: 'perf-hint',
       result: {
         rawValue: 100, description: 'Bug',
-        helpText: '', score: 32,
+        helpText: '', score: 0.32,
       },
     };
 
@@ -153,7 +154,7 @@ describe('PerfCategoryRenderer', () => {
     const diagnosticSection = categoryDOM.querySelectorAll('.lh-category > .lh-audit-group')[2];
 
     const diagnosticAudits = category.audits.filter(audit => audit.group === 'perf-info' &&
-        audit.result.score !== 100);
+        audit.result.score !== 1);
     const diagnosticElements = diagnosticSection.querySelectorAll('.lh-audit');
     assert.equal(diagnosticElements.length, diagnosticAudits.length);
   });
@@ -164,7 +165,7 @@ describe('PerfCategoryRenderer', () => {
 
     const passedAudits = category.audits.filter(audit =>
         audit.group && audit.group !== 'perf-metric' &&
-        audit.result.score === 100);
+        audit.result.score === 1);
     const passedElements = passedSection.querySelectorAll('.lh-audit');
     assert.equal(passedElements.length, passedAudits.length);
   });

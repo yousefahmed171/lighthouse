@@ -8,7 +8,7 @@
 const Config = require('../../config/config');
 const assert = require('assert');
 const path = require('path');
-const defaultConfig = require('../../config/default.js');
+const defaultConfig = require('../../config/default-config.js');
 const log = require('lighthouse-logger');
 const Gatherer = require('../../gather/gatherers/gatherer');
 const Audit = require('../../audits/audit');
@@ -35,16 +35,19 @@ describe('Config', () => {
     class MyAudit extends Audit {
       static get meta() {
         return {
-          name: 'MyAudit',
+          name: 'my-audit',
           description: 'My audit',
           failureDescription: 'My failing audit',
           helpText: '.',
-          requiredArtifacts: [],
+          requiredArtifacts: ['MyGatherer'],
         };
       }
       static audit() {}
     }
     const config = {
+      // Extend to default to double test our ability to handle plugins
+      extends: 'lighthouse:default',
+      settings: {onlyAudits: ['my-audit']},
       passes: [{
         gatherers: [MyGatherer],
       }],
@@ -61,33 +64,35 @@ describe('Config', () => {
     assert.equal(origConfig.audits.length, config.audits.length);
   });
 
-  it('warns when a passName is used twice', () => {
+  it('throws when a passName is used twice', () => {
     const unlikelyPassName = 'unlikelyPassName';
     const configJson = {
       passes: [{
         passName: unlikelyPassName,
-        gatherers: [],
+        gatherers: ['url'],
       }, {
         passName: unlikelyPassName,
-        gatherers: [],
+        gatherers: ['viewport-dimensions'],
       }],
-      audits: [],
     };
 
     assert.throws(_ => new Config(configJson), /unique/);
   });
 
-  it('warns when traced twice with no passNames specified', () => {
+  it('defaults passName to defaultPass', () => {
+    class MyGatherer extends Gatherer {}
     const configJson = {
       passes: [{
-        gatherers: [],
-      }, {
-        gatherers: [],
+        gatherers: [MyGatherer],
       }],
-      audits: [],
     };
 
-    assert.throws(_ => new Config(configJson), /requires a passName/);
+    const config = new Config(configJson);
+    const defaultPass = config.passes.find(pass => pass.passName === 'defaultPass');
+    assert.ok(
+      defaultPass.gatherers.find(gatherer => gatherer.implementation === MyGatherer),
+      'defaultPass should have contained extra gatherer'
+    );
   });
 
   it('throws for unknown gatherers', () => {
@@ -138,11 +143,11 @@ describe('Config', () => {
   });
 
   it('throws on a non-absolute config path', () => {
-    const configPath = '../../config/default.js';
+    const configPath = '../../config/default-config.js';
 
     return assert.throws(_ => new Config({
       audits: [],
-    }, configPath), /absolute path/);
+    }, {configPath}), /absolute path/);
   });
 
   it('loads an audit relative to a config path', () => {
@@ -150,7 +155,7 @@ describe('Config', () => {
 
     return assert.doesNotThrow(_ => new Config({
       audits: ['../fixtures/valid-custom-audit'],
-    }, configPath));
+    }, {configPath}));
   });
 
   it('loads an audit from node_modules/', () => {
@@ -440,8 +445,26 @@ describe('Config', () => {
     const auditNames = new Set(config.audits.map(audit => audit.implementation.meta.name));
     assert.ok(config, 'failed to generate config');
     assert.ok(auditNames.has('custom-audit'), 'did not include custom audit');
-    assert.ok(auditNames.has('unused-css-rules'), 'did not include full audits');
+    assert.ok(auditNames.has('unused-javascript'), 'did not include full audits');
     assert.ok(auditNames.has('first-meaningful-paint'), 'did not include default audits');
+  });
+
+  it('merges settings with correct priority', () => {
+    const config = new Config(
+      {
+        extends: 'lighthouse:full',
+        settings: {
+          disableStorageReset: true,
+          disableDeviceEmulation: false,
+        },
+      },
+      {disableDeviceEmulation: true}
+    );
+
+    assert.ok(config, 'failed to generate config');
+    assert.ok(typeof config.settings.maxWaitForLoad === 'number', 'missing setting from default');
+    assert.ok(config.settings.disableStorageReset, 'missing setting from extension config');
+    assert.ok(config.settings.disableDeviceEmulation, 'missing setting from flags');
   });
 
   describe('artifact loading', () => {
@@ -571,7 +594,7 @@ describe('Config', () => {
     });
   });
 
-  describe('generateConfigOfCategories', () => {
+  describe('generateNewFilteredConfig', () => {
     it('should not mutate the original config', () => {
       const configCopy = JSON.parse(JSON.stringify(origConfig));
       Config.generateNewFilteredConfig(configCopy, ['performance']);
@@ -633,6 +656,27 @@ describe('Config', () => {
     });
   });
 
+  describe('expandAuditShorthandAndMergeOptions', () => {
+    it('should merge audits', () => {
+      const audits = ['a', {path: 'b', options: {x: 1, y: 1}}, {path: 'b', options: {x: 2}}];
+      const merged = Config.expandAuditShorthandAndMergeOptions(audits);
+      assert.deepEqual(merged, [{path: 'a', options: {}}, {path: 'b', options: {x: 2, y: 1}}]);
+    });
+  });
+
+  describe('expandGathererShorthandAndMergeOptions', () => {
+    it('should merge gatherers', () => {
+      const gatherers = [
+        'viewport-dimensions',
+        {path: 'viewport-dimensions', options: {x: 1}},
+        {path: 'viewport-dimensions', options: {y: 1}},
+      ];
+
+      const merged = Config.expandGathererShorthandAndMergeOptions([{gatherers}]);
+      assert.deepEqual(merged[0].gatherers, [{path: 'viewport-dimensions', options: {x: 1, y: 1}}]);
+    });
+  });
+
   describe('#requireGatherers', () => {
     function loadGatherer(gathererEntry) {
       const config = new Config({passes: [{gatherers: [gathererEntry]}]});
@@ -648,6 +692,16 @@ describe('Config', () => {
     it('loads gatherers from custom paths', () => {
       const customPath = path.resolve(__dirname, '../fixtures/valid-custom-gatherer');
       const gatherer = loadGatherer(customPath);
+      assert.equal(gatherer.instance.name, 'CustomGatherer');
+      assert.equal(typeof gatherer.instance.beforePass, 'function');
+    });
+
+    it('loads a gatherer relative to a config path', () => {
+      const config = new Config({
+        passes: [{gatherers: ['../fixtures/valid-custom-gatherer']}],
+      }, {configPath: __filename});
+      const gatherer = config.passes[0].gatherers[0];
+
       assert.equal(gatherer.instance.name, 'CustomGatherer');
       assert.equal(typeof gatherer.instance.beforePass, 'function');
     });

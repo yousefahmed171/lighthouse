@@ -10,19 +10,12 @@ const NetworkNode = require('../network-node'); // eslint-disable-line no-unused
 const CpuNode = require('../cpu-node'); // eslint-disable-line no-unused-vars
 const TcpConnection = require('./tcp-connection');
 const ConnectionPool = require('./connection-pool');
-const emulation = require('../../emulation').settings;
+const mobile3G = require('../../../config/constants').throttling.mobile3G;
 
 // see https://cs.chromium.org/search/?q=kDefaultMaxNumDelayableRequestsPerClient&sq=package:chromium&type=cs
 const DEFAULT_MAXIMUM_CONCURRENT_REQUESTS = 10;
-
-// Fast 3G emulation target from DevTools, WPT 3G - Fast setting
-const DEFAULT_RTT = emulation.TYPICAL_MOBILE_THROTTLING_METRICS.targetLatency;
-const DEFAULT_THROUGHPUT = emulation.TYPICAL_MOBILE_THROTTLING_METRICS.targetDownloadThroughput * 8; // 1.6 Mbps
-
-// same multiplier as Lighthouse uses for CPU emulation
-const DEFAULT_CPU_TASK_MULTIPLIER = emulation.CPU_THROTTLE_METRICS.rate;
 // layout tasks tend to be less CPU-bound and do not experience the same increase in duration
-const DEFAULT_LAYOUT_TASK_MULTIPLIER = DEFAULT_CPU_TASK_MULTIPLIER / 2;
+const DEFAULT_LAYOUT_TASK_MULTIPLIER = 0.5;
 // if a task takes more than 10 seconds it's usually a sign it isn't actually CPU bound and we're overestimating
 const DEFAULT_MAXIMUM_CPU_TASK_DURATION = 10000;
 
@@ -35,17 +28,15 @@ const NodeState = {
 
 class Simulator {
   /**
-   * @param {Node} graph
-   * @param {SimulationOptions} [options]
+   * @param {LH.Gatherer.Simulation.Options} [options]
    */
-  constructor(graph, options) {
-    this._graph = graph;
+  constructor(options) {
     this._options = Object.assign(
       {
-        rtt: DEFAULT_RTT,
-        throughput: DEFAULT_THROUGHPUT,
+        rtt: mobile3G.rttMs,
+        throughput: mobile3G.throughputKbps * 1024,
         maximumConcurrentRequests: DEFAULT_MAXIMUM_CONCURRENT_REQUESTS,
-        cpuTaskMultiplier: DEFAULT_CPU_TASK_MULTIPLIER,
+        cpuSlowdownMultiplier: mobile3G.cpuSlowdownMultiplier,
         layoutTaskMultiplier: DEFAULT_LAYOUT_TASK_MULTIPLIER,
       },
       options
@@ -53,13 +44,14 @@ class Simulator {
 
     this._rtt = this._options.rtt;
     this._throughput = this._options.throughput;
-    this._maximumConcurrentRequests = Math.min(
+    this._maximumConcurrentRequests = Math.max(Math.min(
       TcpConnection.maximumSaturatedConnections(this._rtt, this._throughput),
       this._options.maximumConcurrentRequests
-    );
-    this._cpuTaskMultiplier = this._options.cpuTaskMultiplier;
-    this._layoutTaskMultiplier = this._options.layoutTaskMultiplier;
+    ), 1);
+    this._cpuSlowdownMultiplier = this._options.cpuSlowdownMultiplier;
+    this._layoutTaskMultiplier = this._cpuSlowdownMultiplier * this._options.layoutTaskMultiplier;
 
+    // Properties reset on every `.simulate` call but duplicated here for type checking
     this._nodeTiming = new Map();
     this._numberInProgressByType = new Map();
     this._nodes = {};
@@ -68,14 +60,14 @@ class Simulator {
   }
 
   /**
-   *
+   * @param {Node} graph
    */
-  _initializeConnectionPool() {
-    /** @type {LH.NetworkRequest[]} */
+  _initializeConnectionPool(graph) {
+    /** @type {LH.WebInspector.NetworkRequest[]} */
     const records = [];
-    this._graph.getRootNode().traverse(node => {
+    graph.getRootNode().traverse(node => {
       if (node.type === Node.TYPES.NETWORK) {
-        records.push((/** @type {NetworkNode} */ (node)).record);
+        records.push(/** @type {NetworkNode} */ (node).record);
       }
     });
 
@@ -105,7 +97,7 @@ class Simulator {
 
   /**
    * @param {Node} node
-   * @param {NodeTimingData} values
+   * @param {LH.Gatherer.Simulation.NodeTiming} values
    */
   _setTimingData(node, values) {
     const timingData = this._nodeTiming.get(node) || {};
@@ -175,7 +167,7 @@ class Simulator {
     // Start a network request if we're not at max requests and a connection is available
     const numberOfActiveRequests = this._numberInProgress(node.type);
     if (numberOfActiveRequests >= this._maximumConcurrentRequests) return;
-    const connection = this._connectionPool.acquire((/** @type {NetworkNode} */ (node)).record);
+    const connection = this._connectionPool.acquire(/** @type {NetworkNode} */ (node).record);
     if (!connection) return;
 
     this._markNodeAsInProgress(node, totalElapsedTime);
@@ -204,11 +196,11 @@ class Simulator {
   _estimateTimeRemaining(node) {
     if (node.type === Node.TYPES.CPU) {
       const timingData = this._nodeTiming.get(node);
-      const multiplier = (/** @type {CpuNode} */ (node)).didPerformLayout()
+      const multiplier = /** @type {CpuNode} */ (node).didPerformLayout()
         ? this._layoutTaskMultiplier
-        : this._cpuTaskMultiplier;
+        : this._cpuSlowdownMultiplier;
       const totalDuration = Math.min(
-        Math.round((/** @type {CpuNode} */ (node)).event.dur / 1000 * multiplier),
+        Math.round(/** @type {CpuNode} */ (node).event.dur / 1000 * multiplier),
         DEFAULT_MAXIMUM_CPU_TASK_DURATION
       );
       const estimatedTimeElapsed = totalDuration - timingData.timeElapsed;
@@ -218,7 +210,7 @@ class Simulator {
 
     if (node.type !== Node.TYPES.NETWORK) throw new Error('Unsupported');
 
-    const record = (/** @type {NetworkNode} */ (node)).record;
+    const record = /** @type {NetworkNode} */ (node).record;
     const timingData = this._nodeTiming.get(node);
     const connection = /** @type {TcpConnection} */ (this._connectionPool.acquire(record));
     const calculation = connection.simulateDownloadUntil(
@@ -262,7 +254,7 @@ class Simulator {
 
     if (node.type !== Node.TYPES.NETWORK) throw new Error('Unsupported');
 
-    const record = (/** @type {NetworkNode} */ (node)).record;
+    const record = /** @type {NetworkNode} */ (node).record;
     const connection = /** @type {TcpConnection} */ (this._connectionPool.acquire(record));
     const calculation = connection.simulateDownloadUntil(
       record.transferSize - timingData.bytesDownloaded,
@@ -288,18 +280,19 @@ class Simulator {
 
   /**
    * Estimates the time taken to process all of the graph's nodes.
-   * @return {{timeInMs: number, nodeTiming: Map<Node, NodeTimingData>}}
+   * @param {Node} graph
+   * @return {LH.Gatherer.Simulation.Result}
    */
-  simulate() {
+  simulate(graph) {
     // initialize the necessary data containers
-    this._initializeConnectionPool();
+    this._initializeConnectionPool(graph);
     this._initializeAuxiliaryData();
 
     const nodesNotReadyToStart = this._nodes[NodeState.NotReadyToStart];
     const nodesReadyToStart = this._nodes[NodeState.ReadyToStart];
     const nodesInProgress = this._nodes[NodeState.InProgress];
 
-    const rootNode = this._graph.getRootNode();
+    const rootNode = graph.getRootNode();
     rootNode.traverse(node => nodesNotReadyToStart.add(node));
 
     let totalElapsedTime = 0;
@@ -342,25 +335,3 @@ class Simulator {
 }
 
 module.exports = Simulator;
-
-/**
- * @typedef NodeTimingData
- * @property {number} [startTime]
- * @property {number} [endTime]
- * @property {number} [queuedTime]
- * @property {number} [estimatedTimeElapsed]
- * @property {number} [timeElapsed]
- * @property {number} [timeElapsedOvershoot]
- * @property {number} [bytesDownloaded]
- */
-
-/**
- * @typedef SimulationOptions
- * @property {number} [rtt]
- * @property {number} [throughput]
- * @property {number} [fallbackTTFB]
- * @property {number} [maximumConcurrentRequests]
- * @property {number} [cpuTaskMultiplier]
- * @property {number} [layoutTaskMultiplier]
- */
-

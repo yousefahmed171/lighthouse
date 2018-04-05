@@ -16,7 +16,7 @@ module.exports = [
     url: 'http://localhost:10200/online-only.html',
     audits: {
       'is-on-https': {
-        score: true,
+        score: 1,
       },
       'uses-http2': {
         score: false,
@@ -52,36 +52,36 @@ module.exports = [
         score: true,
       },
       'redirects-http': {
-        score: false,
+        score: 0,
       },
       'service-worker': {
-        score: false,
+        score: 0,
       },
       'works-offline': {
-        score: false,
+        score: 0,
       },
       'viewport': {
-        score: true,
+        score: 1,
       },
       'without-javascript': {
-        score: true,
+        score: 1,
       },
       'user-timings': {
-        score: true,
-        displayValue: '0',
+        score: 1,
+        displayValue: '',
       },
       'critical-request-chains': {
-        score: true,
-        displayValue: '0',
+        score: 1,
+        displayValue: '',
       },
       'webapp-install-banner': {
-        score: false,
+        score: 0,
       },
       'splash-screen': {
-        score: false,
+        score: 0,
       },
       'themed-omnibox': {
-        score: false,
+        score: 0,
       },
       'aria-valid-attr': {
         notApplicable: true,
@@ -90,7 +90,7 @@ module.exports = [
         notApplicable: true,
       },
       'color-contrast': {
-        score: true,
+        score: 1,
       },
       'image-alt': {
         notApplicable: true,
@@ -102,7 +102,7 @@ module.exports = [
         notApplicable: true,
       },
       'content-width': {
-        score: true,
+        score: 1,
       },
     },
   },
@@ -112,39 +112,39 @@ module.exports = [
     url: 'http://localhost:10503/offline-ready.html',
     audits: {
       'is-on-https': {
-        score: true,
+        score: 1,
       },
       'redirects-http': {
-        score: false,
+        score: 0,
       },
       'service-worker': {
-        score: true,
+        score: 1,
       },
       'works-offline': {
-        score: true,
+        score: 1,
       },
       'viewport': {
-        score: true,
+        score: 1,
       },
       'without-javascript': {
-        score: true,
+        score: 1,
       },
       'user-timings': {
-        score: true,
-        displayValue: '0',
+        score: 1,
+        displayValue: '',
       },
       'critical-request-chains': {
-        score: true,
-        displayValue: '0',
+        score: 1,
+        displayValue: '',
       },
       'webapp-install-banner': {
-        score: false,
+        score: 1,
       },
       'splash-screen': {
-        score: false,
+        score: 0,
       },
       'themed-omnibox': {
-        score: false,
+        score: 0,
       },
       'aria-valid-attr': {
         notApplicable: true,
@@ -153,10 +153,10 @@ module.exports = [
         notApplicable: true,
       },
       'color-contrast': {
-        score: true,
+        score: 1,
       },
       'image-alt': {
-        score: false,
+        score: 0,
       },
       'label': {
         notApplicable: true,
@@ -165,7 +165,7 @@ module.exports = [
         notApplicable: true,
       },
       'content-width': {
-        score: true,
+        score: 1,
       },
     },
   },

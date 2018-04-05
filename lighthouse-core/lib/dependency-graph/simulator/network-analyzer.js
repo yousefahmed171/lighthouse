@@ -7,7 +7,7 @@
 
 const INITIAL_CWD = 14 * 1024;
 
-module.exports = class NetworkAnalyzer {
+class NetworkAnalyzer {
   /**
    * @return {string}
    */
@@ -16,8 +16,8 @@ module.exports = class NetworkAnalyzer {
   }
 
   /**
-   * @param {LH.NetworkRequest[]} records
-   * @return {Map<string, LH.NetworkRequest[]>}
+   * @param {LH.WebInspector.NetworkRequest[]} records
+   * @return {Map<string, LH.WebInspector.NetworkRequest[]>}
    */
   static groupByOrigin(records) {
     const grouped = new Map();
@@ -62,7 +62,7 @@ module.exports = class NetworkAnalyzer {
   }
 
   /**
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @param {function(any):any} iteratee
    * @return {Map<string, number[]>}
    */
@@ -100,7 +100,7 @@ module.exports = class NetworkAnalyzer {
    * Estimates the observed RTT to each origin based on how long the TCP handshake took.
    * This is the most accurate and preferred method of measurement when the data is available.
    *
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @return {Map<string, number[]>}
    */
   static _estimateRTTByOriginViaTCPTiming(records) {
@@ -122,7 +122,7 @@ module.exports = class NetworkAnalyzer {
    * NOTE: this will tend to overestimate the actual RTT quite significantly as the download can be
    * slow for other reasons as well such as bandwidth constraints.
    *
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @return {Map<string, number[]>}
    */
   static _estimateRTTByOriginViaDownloadTiming(records) {
@@ -150,7 +150,7 @@ module.exports = class NetworkAnalyzer {
    * NOTE: this will tend to overestimate the actual RTT as the request can be delayed for other
    * reasons as well such as DNS lookup.
    *
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @return {Map<string, number[]>}
    */
   static _estimateRTTByOriginViaSendStartTiming(records) {
@@ -169,7 +169,7 @@ module.exports = class NetworkAnalyzer {
   /**
    * Given the RTT to each origin, estimates the observed server response times.
    *
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @param {Map<string, number>} rttByOrigin
    * @return {Map<string, number[]>}
    */
@@ -186,19 +186,35 @@ module.exports = class NetworkAnalyzer {
   }
 
   /**
+   * @param {LH.WebInspector.NetworkRequest[]} records
+   * @return {boolean}
+   */
+  static canTrustConnectionInformation(records) {
+    const connectionIdWasStarted = new Map();
+    for (const record of records) {
+      const started = connectionIdWasStarted.get(record.connectionId) || !record.connectionReused;
+      connectionIdWasStarted.set(record.connectionId, started);
+    }
+
+    // We probably can't trust the network information if all the connection IDs were the same
+    if (connectionIdWasStarted.size <= 1) return false;
+    // Or if there were connections that were always reused (a connection had to have started at some point)
+    return Array.from(connectionIdWasStarted.values()).every(started => started);
+  }
+
+  /**
    * Returns a map of requestId -> connectionReused, estimating the information if the information
    * available in the records themselves appears untrustworthy.
    *
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @param {object} [options]
    * @return {Map<string, boolean>}
    */
   static estimateIfConnectionWasReused(records, options) {
     options = Object.assign({forceCoarseEstimates: false}, options);
 
-    const connectionIds = new Set(records.map(record => record.connectionId));
-    // If the records actually have distinct connectionIds we can reuse these.
-    if (!options.forceCoarseEstimates && connectionIds.size > 1) {
+    // Check if we can trust the connection information coming from the protocol
+    if (!options.forceCoarseEstimates && NetworkAnalyzer.canTrustConnectionInformation(records)) {
       // @ts-ignore
       return new Map(records.map(record => [record.requestId, !!record.connectionReused]));
     }
@@ -235,7 +251,7 @@ module.exports = class NetworkAnalyzer {
    * Attempts to use the most accurate information first and falls back to coarser estimates when it
    * is unavailable.
    *
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @param {object} [options]
    * @return {Map<string, !NetworkAnalyzer.Summary>}
    */
@@ -280,7 +296,7 @@ module.exports = class NetworkAnalyzer {
    * Estimates the server response time of each origin. RTT times can be passed in or will be
    * estimated automatically if not provided.
    *
-   * @param {LH.NetworkRequest[]} records
+   * @param {LH.WebInspector.NetworkRequest[]} records
    * @param {Object=} options
    * @return {Map<string, !NetworkAnalyzer.Summary>}
    */
@@ -303,7 +319,9 @@ module.exports = class NetworkAnalyzer {
     const estimatesByOrigin = NetworkAnalyzer._estimateResponseTimeByOrigin(records, rttByOrigin);
     return NetworkAnalyzer.summarize(estimatesByOrigin);
   }
-};
+}
+
+module.exports = NetworkAnalyzer;
 
 /**
  * @typedef NetworkAnalyzer.Summary

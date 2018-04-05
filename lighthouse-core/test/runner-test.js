@@ -11,9 +11,11 @@ const driverMock = require('./gather/fake-driver');
 const Config = require('../config/config');
 const Audit = require('../audits/audit');
 const assetSaver = require('../lib/asset-saver');
+const fs = require('fs');
 const assert = require('assert');
 const path = require('path');
 const sinon = require('sinon');
+const rimraf = require('rimraf');
 
 const computedArtifacts = Runner.instantiateComputedArtifacts();
 
@@ -38,15 +40,22 @@ describe('Runner', () => {
 
   describe('Gather Mode & Audit Mode', () => {
     const url = 'https://example.com';
-    const generateConfig = _ => new Config({
+    const generateConfig = settings => new Config({
       passes: [{
         gatherers: ['viewport-dimensions'],
       }],
       audits: ['content-width'],
+      settings,
+    });
+    const artifactsPath = '.tmp/test_artifacts';
+    const resolvedPath = path.resolve(process.cwd(), artifactsPath);
+
+    after(() => {
+      rimraf.sync(resolvedPath);
     });
 
     it('-G gathers, quits, and doesn\'t run audits', () => {
-      const opts = {url, config: generateConfig(), driverMock, flags: {gatherMode: true}};
+      const opts = {url, config: generateConfig({gatherMode: artifactsPath}), driverMock};
       return Runner.run(null, opts).then(_ => {
         assert.equal(loadArtifactsSpy.called, false, 'loadArtifacts was called');
 
@@ -57,12 +66,15 @@ describe('Runner', () => {
 
         assert.equal(gatherRunnerRunSpy.called, true, 'GatherRunner.run was not called');
         assert.equal(runAuditSpy.called, false, '_runAudit was called');
+
+        assert.ok(fs.existsSync(resolvedPath));
+        assert.ok(fs.existsSync(`${resolvedPath}/artifacts.json`));
       });
     });
 
     // uses the files on disk from the -G test. ;)
     it('-A audits from saved artifacts and doesn\'t gather', () => {
-      const opts = {url, config: generateConfig(), driverMock, flags: {auditMode: true}};
+      const opts = {url, config: generateConfig({auditMode: artifactsPath}), driverMock};
       return Runner.run(null, opts).then(_ => {
         assert.equal(loadArtifactsSpy.called, true, 'loadArtifacts was not called');
         assert.equal(gatherRunnerRunSpy.called, false, 'GatherRunner.run was called');
@@ -71,9 +83,20 @@ describe('Runner', () => {
       });
     });
 
+    it('-A throws if the settings change', async () => {
+      const settings = {auditMode: artifactsPath, disableDeviceEmulation: true};
+      const opts = {url, config: generateConfig(settings), driverMock};
+      try {
+        await Runner.run(null, opts);
+        assert.fail('should have thrown');
+      } catch (err) {
+        assert.ok(/Cannot change settings/.test(err.message), 'should have prevented run');
+      }
+    });
+
     it('-GA is a normal run but it saves artifacts to disk', () => {
-      const opts = {url, config: generateConfig(), driverMock,
-        flags: {auditMode: true, gatherMode: true}};
+      const settings = {auditMode: artifactsPath, gatherMode: artifactsPath};
+      const opts = {url, config: generateConfig(settings), driverMock};
       return Runner.run(null, opts).then(_ => {
         assert.equal(loadArtifactsSpy.called, false, 'loadArtifacts was called');
         assert.equal(gatherRunnerRunSpy.called, true, 'GatherRunner.run was not called');
@@ -377,7 +400,7 @@ describe('Runner', () => {
 
     return Runner.run({}, {url, config}).then(results => {
       const audits = results.audits;
-      assert.equal(audits['critical-request-chains'].displayValue, 5);
+      assert.equal(audits['critical-request-chains'].displayValue, '5 chains found');
       assert.equal(audits['critical-request-chains'].rawValue, false);
     });
   });
@@ -411,7 +434,7 @@ describe('Runner', () => {
 
     return Runner.run(null, {url, config, driverMock}).then(results => {
       assert.ok(results.lighthouseVersion);
-      assert.ok(results.generatedTime);
+      assert.ok(results.fetchedAt);
       assert.equal(results.initialUrl, url);
       assert.equal(gatherRunnerRunSpy.called, true, 'GatherRunner.run was not called');
       assert.equal(results.audits['content-width'].name, 'content-width');
@@ -441,12 +464,12 @@ describe('Runner', () => {
 
     return Runner.run(null, {url, config, driverMock}).then(results => {
       assert.ok(results.lighthouseVersion);
-      assert.ok(results.generatedTime);
+      assert.ok(results.fetchedAt);
       assert.equal(results.initialUrl, url);
       assert.equal(gatherRunnerRunSpy.called, true, 'GatherRunner.run was not called');
       assert.equal(results.audits['content-width'].name, 'content-width');
-      assert.equal(results.audits['content-width'].score, true);
-      assert.equal(results.reportCategories[0].score, 100);
+      assert.equal(results.audits['content-width'].score, 1);
+      assert.equal(results.reportCategories[0].score, 1);
       assert.equal(results.reportCategories[0].audits[0].id, 'content-width');
     });
   });

@@ -6,8 +6,8 @@
 'use strict';
 
 const Audit = require('../audit');
-const PredictivePerf = require('../predictive-perf');
-const LoadSimulator = require('../../lib/dependency-graph/simulator/simulator.js');
+const ConsistentlyInteractive = require('../../gather/computed/metrics/lantern-consistently-interactive'); // eslint-disable-line max-len
+const Simulator = require('../../lib/dependency-graph/simulator/simulator'); // eslint-disable-line no-unused-vars
 
 const KB_IN_BYTES = 1024;
 
@@ -24,9 +24,9 @@ class UnusedBytes extends Audit {
    * @return {number}
    */
   static scoreForWastedMs(wastedMs) {
-    if (wastedMs === 0) return 100;
-    else if (wastedMs < WASTED_MS_FOR_AVERAGE) return 90;
-    else if (wastedMs < WASTED_MS_FOR_POOR) return 65;
+    if (wastedMs === 0) return 1;
+    else if (wastedMs < WASTED_MS_FOR_AVERAGE) return 0.9;
+    else if (wastedMs < WASTED_MS_FOR_POOR) return 0.65;
     else return 0;
   }
 
@@ -44,7 +44,7 @@ class UnusedBytes extends Audit {
    * Estimates the number of bytes this network record would have consumed on the network based on the
    * uncompressed size (totalBytes), uses the actual transfer size from the network record if applicable.
    *
-   * @param {?WebInspector.NetworkRequest} networkRecord
+   * @param {?LH.WebInspector.NetworkRequest} networkRecord
    * @param {number} totalBytes Uncompressed size of the resource
    * @param {string=} resourceType
    * @param {number=} compressionRatio
@@ -68,33 +68,43 @@ class UnusedBytes extends Audit {
   }
 
   /**
-   * @param {!Artifacts} artifacts
-   * @return {!Promise<!AuditResult>}
+   * @param {Artifacts} artifacts
+   * @param {LH.Audit.Context=} context
+   * @return {Promise<AuditResult>}
    */
-  static audit(artifacts) {
+  static audit(artifacts, context) {
     const trace = artifacts.traces[Audit.DEFAULT_PASS];
     const devtoolsLog = artifacts.devtoolsLogs[Audit.DEFAULT_PASS];
+    const settings = context && context.settings || {};
+    const simulatorOptions = {
+      devtoolsLog,
+      throttlingMethod: settings.throttlingMethod,
+      throttling: settings.throttling,
+    };
+
     return artifacts
       .requestNetworkRecords(devtoolsLog)
       .then(networkRecords =>
         Promise.all([
           this.audit_(artifacts, networkRecords),
-          artifacts.requestPageDependencyGraph(trace, devtoolsLog),
+          artifacts.requestPageDependencyGraph({trace, devtoolsLog}),
+          artifacts.requestLoadSimulator(simulatorOptions),
         ])
       )
-      .then(([result, graph]) => this.createAuditResult(result, graph));
+      .then(([result, graph, simulator]) => this.createAuditResult(result, graph, simulator));
   }
 
   /**
    * Computes the estimated effect of all the byte savings on the last long task
    * in the provided graph.
    *
-   * @param {!Array<{url: string, wastedBytes: number}>} results The array of byte savings results per resource
-   * @param {!Node} graph
+   * @param {Array<{url: string, wastedBytes: number}>} results The array of byte savings results per resource
+   * @param {Node} graph
+   * @param {Simulator} simulator
    * @return {number}
    */
   static computeWasteWithTTIGraph(results, graph, simulator) {
-    const simulationBeforeChanges = simulator.simulate();
+    const simulationBeforeChanges = simulator.simulate(graph);
     const resultsByUrl = new Map();
     for (const result of results) {
       resultsByUrl.set(result.url, result);
@@ -111,7 +121,7 @@ class UnusedBytes extends Audit {
       node.record._transferSize = Math.max(original - wastedBytes, 0);
     });
 
-    const simulationAfterChanges = simulator.simulate();
+    const simulationAfterChanges = simulator.simulate(graph);
     // Restore the original transfer size after we've done our simulation
     graph.traverse(node => {
       if (node.type !== 'network') return;
@@ -120,8 +130,8 @@ class UnusedBytes extends Audit {
     });
 
     const savingsOnTTI = Math.max(
-      PredictivePerf.getLastLongTaskEndTime(simulationBeforeChanges.nodeTiming) -
-        PredictivePerf.getLastLongTaskEndTime(simulationAfterChanges.nodeTiming),
+      ConsistentlyInteractive.getLastLongTaskEndTime(simulationBeforeChanges.nodeTiming) -
+        ConsistentlyInteractive.getLastLongTaskEndTime(simulationAfterChanges.nodeTiming),
       0
     );
 
@@ -130,14 +140,12 @@ class UnusedBytes extends Audit {
   }
 
   /**
-   * @param {!Audit.HeadingsResult} result
-   * @param {!Node} graph
-   * @return {!AuditResult}
+   * @param {Audit.HeadingsResult} result
+   * @param {Node} graph
+   * @param {Simulator} simulator
+   * @return {AuditResult}
    */
-  static createAuditResult(result, graph) {
-    const simulatorOptions = PredictivePerf.computeRTTAndServerResponseTime(graph);
-    const simulator = new LoadSimulator(graph, simulatorOptions);
-
+  static createAuditResult(result, graph, simulator) {
     const debugString = result.debugString;
     const results = result.results.sort((itemA, itemB) => itemB.wastedBytes - itemA.wastedBytes);
 

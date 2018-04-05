@@ -4,139 +4,127 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-export as namespace LH;
+import _Crdp from '../node_modules/vscode-chrome-debug-core/lib/crdp/crdp';
+import _StrictEventEmitter from '../third-party/strict-event-emitter-types/index';
+import { EventEmitter } from 'events';
 
-export interface Flags {
-  _: string[];
-  port: number;
-  chromeFlags: string;
-  output: any;
-  outputPath: string;
-  saveAssets: boolean;
-  view: boolean;
-  maxWaitForLoad: number;
-  logLevel: string;
-  hostname: string;
-  blockedUrlPatterns: string[];
-  extraHeaders: string;
-  enableErrorReporting: boolean;
-  listAllAudits: boolean;
-  listTraceCategories: boolean;
-  auditMode: boolean;
-  gatherMode: boolean;
-  configPath?: string;
-  perf: boolean;
-  mixedContent: boolean;
-  verbose: boolean;
-  quiet: boolean;
-}
+declare global {
+  module LH {
+    // re-export useful type modules under global LH module.
+    export import Crdp = _Crdp;
+    export type StrictEventEmitter<TEventRecord, TEmitterType = EventEmitter, TEmitRecord = TEventRecord> =
+      _StrictEventEmitter<TEmitterType, TEventRecord, TEmitRecord>;
 
-export interface Config {}
+    interface ThrottlingSettings {
+      // simulation settings
+      rttMs?: number;
+      throughputKbps?: number;
+      // devtools settings
+      requestLatencyMs?: number;
+      downloadThroughputKbps?: number;
+      uploadThroughputKbps?: number;
+      // used by both
+      cpuSlowdownMultiplier?: number
+    }
 
-export interface AuditResult {
-  rawValue: boolean | number;
-  displayValue?: string;
-  debugString?: string;
-  score?: boolean | number;
-  optimalValue: number | string;
-  extendedInfo?: {value: string};
-}
+    interface SharedFlagsSettings {
+      maxWaitForLoad?: number;
+      blockedUrlPatterns?: string[];
+      additionalTraceCategories?: string[];
+      auditMode?: boolean | string;
+      gatherMode?: boolean | string;
+      disableStorageReset?: boolean;
+      disableDeviceEmulation?: boolean;
+      throttlingMethod?: 'devtools'|'simulate'|'provided';
+      throttling?: ThrottlingSettings;
+      onlyAudits?: string[];
+      onlyCategories?: string[];
+      skipAudits?: string[];
+    }
 
-export interface AuditResults {
-  [metric: string]: AuditResult;
-}
+    export interface Flags extends SharedFlagsSettings {
+      _: string[];
+      port: number;
+      chromeFlags: string;
+      output: any;
+      outputPath: string;
+      saveAssets: boolean;
+      view: boolean;
+      logLevel: string;
+      hostname: string;
+      enableErrorReporting: boolean;
+      listAllAudits: boolean;
+      listTraceCategories: boolean;
+      configPath?: string;
+      perf: boolean;
+      mixedContent: boolean;
+      verbose: boolean;
+      quiet: boolean;
 
-export interface AuditFullResult {
-  rawValue: boolean | number;
-  displayValue: string;
-  debugString?: string;
-  score: boolean | number;
-  scoringMode: string;
-  error?: boolean;
-  description: string;
-  name: string;
-  helpText?: string;
-  extendedInfo?: {value: string};
-}
+      extraHeaders?: string;
+    }
 
-export interface AuditFullResults {
-  [metric: string]: AuditFullResult;
-}
+    // TODO: type checking for Config
+    export interface Config {
+      passes?: ConfigPass[];
+      settings?: ConfigSettings;
+    }
 
-export interface Results {
-  url: string;
-  audits: AuditFullResults;
-  lighthouseVersion: string;
-  artifacts?: Object;
-  initialUrl: string;
-  generatedTime: string;
-}
+    export interface ConfigSettings extends SharedFlagsSettings {
+      extraHeaders?: Crdp.Network.Headers;
+    }
 
-export interface LaunchedChrome {
-  pid: number;
-  port: number;
-  kill: () => Promise<{}>;
-}
+    export interface ConfigPass {
+      recordTrace?: boolean;
+      useThrottling?: boolean;
+      pauseAfterLoadMs?: number;
+      networkQuietThresholdMs?: number;
+      cpuQuietThresholdMs?: number;
+      blockedUrlPatterns?: string[];
+      blankPage?: string;
+      blankDuration?: string;
+    }
 
-export interface LighthouseError extends Error {
-  code?: string;
-  friendlyMessage?: string;
-}
+    export interface Results {
+      url: string;
+      audits: Audit.Results;
+      lighthouseVersion: string;
+      artifacts?: Object;
+      initialUrl: string;
+      fetchedAt: string;
+    }
 
-export interface TraceEvent {
-  name: string;
-  args: any;
-  tid: number;
-  ts: number;
-  dur: number;
-}
+    export interface LaunchedChrome {
+      pid: number;
+      port: number;
+      kill: () => Promise<{}>;
+    }
 
-export interface NetworkRequest {
-  requestId: string;
-  connectionId: string;
-  connectionReused: boolean;
+    export interface LighthouseError extends Error {
+      code?: string;
+      friendlyMessage?: string;
+    }
 
-  url: string;
-  protocol: string;
-  origin: string | null;
-  parsedURL: DevToolsParsedURL;
+    export interface TraceEvent {
+      name: string;
+      args: {
+        data?: {
+          url?: string
+        };
+      };
+      tid: number;
+      ts: number;
+      dur: number;
+    }
 
-  startTime: number;
-  endTime: number;
-
-  transferSize: number;
-
-  _initiator: NetworkRequestInitiator;
-  _timing: NetworkRequestTiming;
-  _resourceType: any;
-  priority(): 'VeryHigh' | 'High' | 'Medium' | 'Low';
-}
-
-export interface NetworkRequestInitiator {
-  type: 'script' | 'parser';
-}
-
-export interface NetworkRequestTiming {
-  connectStart: number;
-  connectEnd: number
-  sslStart: number;
-  sslEnd: number;
-  sendStart: number;
-  sendEnd: number;
-  receiveHeadersEnd: number;
-}
-
-export interface DevToolsParsedURL {
-  scheme: string;
-  host: string;
-}
-
-export interface DevToolsJsonTarget {
-  description: string;
-  devtoolsFrontendUrl: string;
-  id: string;
-  title: string;
-  type: string;
-  url: string;
-  webSocketDebuggerUrl: string;
+    export interface DevToolsJsonTarget {
+      description: string;
+      devtoolsFrontendUrl: string;
+      id: string;
+      title: string;
+      type: string;
+      url: string;
+      webSocketDebuggerUrl: string;
+    }
+  }
 }

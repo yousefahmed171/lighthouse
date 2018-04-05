@@ -18,6 +18,7 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
       name: 'unused-javascript',
       description: 'Unused JavaScript',
       informative: true,
+      scoreDisplayMode: ByteEfficiencyAudit.SCORING_MODES.NUMERIC,
       helpText: 'Remove unused JavaScript to reduce bytes consumed by network activity.',
       requiredArtifacts: ['JsUsage', 'devtoolsLogs'],
     };
@@ -61,7 +62,7 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
 
   /**
    * @param {!Array<{unusedLength: number, contentLength: number}>} wasteData
-   * @param {!WebInspector.NetworkRequest} networkRecord
+   * @param {LH.WebInspector.NetworkRequest} networkRecord
    * @return {{url: string, totalBytes: number, wastedBytes: number, wastedPercent: number}}
    */
   static mergeWaste(wasteData, networkRecord) {

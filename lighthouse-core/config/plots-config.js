@@ -6,20 +6,13 @@
 'use strict';
 
 module.exports = {
-  passes: [{
-    recordTrace: true,
-    pauseAfterLoadMs: 5250,
-    networkQuietThresholdMs: 5250,
-    cpuQuietThresholdMs: 5250,
-    useThrottling: true,
-    gatherers: [],
-  }],
-
-  audits: [
-    'first-meaningful-paint',
-    'speed-index-metric',
-    'estimated-input-latency',
-    'first-interactive',
-    'consistently-interactive',
-  ],
+  settings: {
+    onlyAudits: [
+      'first-meaningful-paint',
+      'speed-index-metric',
+      'estimated-input-latency',
+      'first-interactive',
+      'consistently-interactive',
+    ],
+  },
 };
