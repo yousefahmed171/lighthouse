@@ -120,20 +120,25 @@ class UnusedBytes extends Audit {
       node.record._transferSize = node.record._originalTransferSize;
     });
 
+    let lastLong = ConsistentlyInteractive.getLastLongTaskEndTime(simulationBeforeChanges.nodeTiming)
     console.log('before savings')
-    console.log('last long', ConsistentlyInteractive.getLastLongTaskEndTime(simulationBeforeChanges.nodeTiming))
+    console.log('last long', lastLong)
     for (const node of simulationBeforeChanges.nodeTiming.keys()) {
-      if (/script.js/.test(node.record && node.record.url)) {
-        const timing = simulationBeforeChanges.nodeTiming.get(node)
-        console.log(`${Math.round(timing.startTime)} to ${Math.round(timing.endTime)}, ${Math.round(timing.endTime - timing.startTime)}ms`)
+      const timing = simulationBeforeChanges.nodeTiming.get(node)
+      if (/script.js/.test(node.record && node.record.url) || (node.type === 'cpu' && timing.endTime - timing.startTime > 50) || Math.abs(timing.endTime - lastLong) < 500) {
+        if (node.type === 'network') console.log(node.record.url)
+        console.log(node.type, `${Math.round(timing.startTime)} to ${Math.round(timing.endTime)}, ${Math.round(timing.endTime - timing.startTime)}ms`)
       }
     }
+
+    lastLong = ConsistentlyInteractive.getLastLongTaskEndTime(simulationAfterChanges.nodeTiming)
     console.log('after savings')
-    console.log('last long', ConsistentlyInteractive.getLastLongTaskEndTime(simulationAfterChanges.nodeTiming))
+    console.log('last long', lastLong)
     for (const node of simulationAfterChanges.nodeTiming.keys()) {
-      if (/script.js/.test(node.record && node.record.url)) {
-        const timing = simulationAfterChanges.nodeTiming.get(node)
-        console.log(`${Math.round(timing.startTime)} to ${Math.round(timing.endTime)}, ${Math.round(timing.endTime - timing.startTime)}ms`)
+      const timing = simulationAfterChanges.nodeTiming.get(node)
+      if (/script.js/.test(node.record && node.record.url) || (node.type === 'cpu' && timing.endTime - timing.startTime > 50) || Math.abs(timing.endTime - lastLong) < 500) {
+        if (node.type === 'network') console.log(node.record.url)
+        console.log(node.type, `${Math.round(timing.startTime)} to ${Math.round(timing.endTime)}, ${Math.round(timing.endTime - timing.startTime)}ms`)
       }
     }
 
