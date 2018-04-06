@@ -43,7 +43,7 @@
     "watch": "bash lighthouse-core/scripts/run-mocha.sh --watch",
     "chrome": "node chrome-launcher/manual-chrome-launcher.js",
     "fast": "yarn start --disable-device-emulation --disable-cpu-throttling --disable-network-throttling",
-    "smokehouse": "echo \"skipped now\"",
+    "smokehouse": "node lighthouse-cli/test/smokehouse/smokehouse.js",
     "deploy-viewer": "cd lighthouse-viewer && gulp deploy",
     "bundlesize": "bundlesize",
     "plots-smoke": "bash plots/test/smoke.sh",

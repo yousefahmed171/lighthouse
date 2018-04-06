@@ -74,9 +74,8 @@ async function run() {
 
   const cmdPromises = [];
   for (const [id, {expectations, config}] of Object.entries(smokes)) {
-    console.log('Running smoketest', {id, config, expectations});
+    console.log(`Running smoketest for ${id}`);
     const cmd = `yarn smokehouse --config-path=${config} --expectations-path=${expectations}`;
-    // const cmd = `yarn --help`;
     const p = execAsync(cmd, {timeout: 5 * 60 * 1000, encoding: 'utf8'}).then(cp => {
       cp.id = id;
       displayOutput(cp);

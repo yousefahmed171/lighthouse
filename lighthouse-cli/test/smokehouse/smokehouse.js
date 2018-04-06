@@ -13,9 +13,6 @@ const spawnSync = require('child_process').spawnSync;
 const yargs = require('yargs');
 const log = require('lighthouse-logger');
 
-const DEFAULT_CONFIG_PATH = 'pwa-config';
-const DEFAULT_EXPECTATIONS_PATH = 'pwa-expectations';
-
 const PROTOCOL_TIMEOUT_EXIT_CODE = 67;
 const RETRIES = 3;
 const NUMERICAL_EXPECTATION_REGEXP = /^(<=?|>=?)((\d|\.)+)$/;
@@ -276,8 +273,8 @@ const cli = yargs
     'config-path': 'The path to the config JSON file',
     'expectations-path': 'The path to the expected audit results file',
   })
-  .default('config-path', DEFAULT_CONFIG_PATH)
-  .default('expectations-path', DEFAULT_EXPECTATIONS_PATH)
+  .require('config-path')
+  .require('expectations-path')
   .argv;
 
 const configPath = resolveLocalOrCwd(cli['config-path']);
