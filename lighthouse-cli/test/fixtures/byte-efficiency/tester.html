@@ -32,9 +32,9 @@ function generateInlineStyleWithSize(sizeInBytes, firstContent = '', used = fals
   document.head.appendChild(style);
 }
 
-function longTask() {
+function longTask(length = 75) {
   const start = Date.now();
-  while (Date.now() < start + 75) ;
+  while (Date.now() < start + length) ;
 }
 
 // Add a long task to delay FI

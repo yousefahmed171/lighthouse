@@ -151,13 +151,15 @@ class PageDependencyGraphArtifact extends ComputedArtifact {
 
     function addDependencyOnUrl(cpuNode, url) {
       if (!url) return;
+      console.log('adding dep for', Math.round((cpuNode.endTime - cpuNode.startTime) / 1000), 'ms task');
       const candidates = networkNodeOutput.urlToNodeMap.get(url) || [];
-
+      console.log('trying to add dependency on', url)
       let minCandidate = null;
       let minDistance = Infinity;
       // Find the closest request that finished before this CPU task started
       candidates.forEach(candidate => {
         const distance = cpuNode.startTime - candidate.endTime;
+        console.log('testing...happened', Math.round(distance / 1000), 'ms before')
         if (distance > 0 && distance < minDistance) {
           minCandidate = candidate;
           minDistance = distance;
